@@ -2,35 +2,27 @@
 #include <iostream>
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include "teapotmodel.h"
+#include "common/fixednumber.h"
+#include "helper.h"
 
 const int WINDOW_WIDTH = 500;
 const int WINDOW_HEIGHT = 500;
-Uint8 *pixels;
-const int pixelsLength = WINDOW_WIDTH * WINDOW_HEIGHT * 4;
 
 void initPixels(){
-    pixels = new Uint8[pixelsLength];
-    for(int i = 0; i < pixelsLength; i += 4){
-        pixels[i] = 255;
-        pixels[i + 1] = 255;
-        pixels[i + 2] = 255;
-        pixels[i + 3] = 255;
-    }
-}
-
-void updatePixels(){
-    for(int i = 0; i < pixelsLength; i += 4){
-        pixels[i] = 0;
-        pixels[i + 1] = 255;
-        pixels[i + 2] = 0;
-        pixels[i + 3] = 255;
+    for(int i = 0; i < canvasBufferLength; i += 4){
+        canvasBuffer[i] = 255;
+        canvasBuffer[i + 1] = 255;
+        canvasBuffer[i + 2] = 255;
+        canvasBuffer[i + 3] = 255;
     }
 }
 
 int main(){
-    initPixels();
+    init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 2, 2);
+    init_fixed_number(4);
+    createTeapotInstance();
 
-    std::cout << "hello w" << std::endl;
     if(!SDL_Init(SDL_INIT_VIDEO)){
         std::cout << "fail SDL_INIT_VIDEO" << std::endl;
         std::cout << SDL_GetError() << std::endl;
@@ -41,7 +33,6 @@ int main(){
         std::cout << SDL_GetError() << std::endl;
         return 1;
     }
-
     
     SDL_Window *window = SDL_CreateWindow("Software Renderer", WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     if(window == NULL){
@@ -86,7 +77,8 @@ int main(){
         }
 
         // main
-        SDL_UpdateTexture(texture, NULL, pixels, WINDOW_WIDTH * 4);
+        render_instance(teapotInstance);
+        SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
 
         // fps

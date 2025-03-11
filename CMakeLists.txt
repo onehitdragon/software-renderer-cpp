@@ -15,9 +15,13 @@ set(CMAKE_PREFIX_PATH "${SDL3_PACKAGE_PATH};${SDL3_ttf_PACKAGE_PATH}")
 find_package(SDL3 REQUIRED)
 find_package(SDL3_ttf REQUIRED)
 
-add_executable(cgcpp src/main.cpp)
+file(GLOB SOURCES "src/*.cpp" "src/common/*.cpp")
+add_executable(cgcpp ${SOURCES})
 
-target_link_libraries(cgcpp PRIVATE SDL3_ttf::SDL3_ttf SDL3::SDL3)
+target_link_libraries(cgcpp PRIVATE
+    SDL3_ttf::SDL3_ttf
+    SDL3::SDL3
+)
 
 add_custom_command(
     TARGET cgcpp POST_BUILD
