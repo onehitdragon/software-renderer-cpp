@@ -146,46 +146,52 @@ void renderTriangle(const Triangle &triangle, const std::vector<Vec3> &projected
     );
 }
 
-M4x4 makeModelTransform(const Transform &transform){
-    M4x4 m_scale = {
+M4x4 m_scale;
+M4x4 m_rotation;
+M4x4 m_translation;
+M4x4 m_modeltransform;
+void makeModelTransform(const Transform &transform){
+    m_scale.init(
         transform.scale, 0, 0, 0,
         0, transform.scale, 0, 0,
         0, 0, transform.scale, 0,
         0, 0, 0, 1
-    };
+    );
     float rotationRad = transform.rotation * M_PI / 180;
-    M4x4 m_rotation = {
+    m_rotation.init(
         std::cos(rotationRad), 0, std::sin(rotationRad), 0,
         0, 1, 0, 0,
         -(std::sin(rotationRad)), 0, std::cos(rotationRad), 0,
         0, 0, 0, 1
-    };
-    M4x4 m_translation = {
+    );
+    m_translation.init(
         1, 0, 0, transform.translation.x,
         0, 1, 0, transform.translation.y,
         0, 0, 1, transform.translation.z,
         0, 0, 0, 1
-    };
+    );
 
-    return multi_matrix(multi_matrix(m_translation, m_rotation), m_scale);
+    avx256_multi_matrix_4x4_4x4(m_translation.value, m_rotation.value, m_modeltransform.value);
+    avx256_multi_matrix_4x4_4x4(m_modeltransform.value, m_scale.value, m_modeltransform.value);
 }
 
-M4x4 makeCameraTransform(){
-    M4x4 m_translation = {
+M4x4 m_camera;
+void makeCameraTransform(){
+    m_translation.init(
         1, 0, 0, -camera.transform.translation.x,
         0, 1, 0, -camera.transform.translation.y,
         0, 0, 1, -camera.transform.translation.z,
         0, 0, 0, 1
-    };
+    );
     float rotationRad = -camera.transform.rotation * M_PI / 180;
-    M4x4 m_rotation = {
+    m_rotation.init(
         std::cos(rotationRad), 0, std::sin(rotationRad), 0,
         0, 1, 0, 0,
         -(std::sin(rotationRad)), 0, std::cos(rotationRad), 0,
         0, 0, 0, 1
-    };
+    );
 
-    return multi_matrix(m_rotation, m_translation);
+    avx256_multi_matrix_4x4_4x4(m_rotation.value, m_translation.value, m_camera.value);
 }
 
 unsigned int clippingPlaneLength = 5;
@@ -321,24 +327,29 @@ std::vector<Triangle> clipping(std::vector<Vec3> &applieds, const std::vector<Tr
     return clipTriangle(status.intersects, applieds, triangles);
 }
 
+M4x4 m_cameramodel;
+M4x1 m4x1_cache_0;
+M4x1 m4x1_cache_1;
 std::vector<Vec3> apply(const Instance &instance){
-    M4x4 m_Model = makeModelTransform(instance.transform);
-    M4x4 m_Camera = makeCameraTransform();
-    M4x4 m_CameraModel = multi_matrix(
-        m_Camera,
-        m_Model
+    makeModelTransform(instance.transform);
+    makeCameraTransform();
+    avx256_multi_matrix_4x4_4x4(
+        m_camera.value,
+        m_modeltransform.value,
+        m_cameramodel.value
     );
 
     std::vector<Vec3> applieds;
     applieds.reserve(instance.model->vertices.size());
 
     for(int i = 0, n = instance.model->vertices.size(); i < n; i++){
-        Vec3 applied = matrix_to_vec3(
-            multi_matrix(
-                m_CameraModel,
-                vec3_to_M4x1(instance.model->vertices[i])
-            )
+        vec3_to_M4x1(instance.model->vertices[i], m4x1_cache_0);
+        avx256_multi_matrix_4x4_4x1(
+            m_cameramodel.value,
+            m4x1_cache_0.value,
+            m4x1_cache_1.value
         );
+        Vec3 applied = matrix_to_vec3(m4x1_cache_1);
         applieds.push_back(applied);
     }
 
@@ -353,18 +364,20 @@ M3x4 makeProjectionTransform(){
     };
 }
 
+M3x1 m3x1_cache_0;
 void project(std::vector<Vec3> &applieds){
     M3x4 m_Projection = makeProjectionTransform();
 
     for(int i = 0, n = applieds.size(); i < n; i++){
         Vec3 applied = applieds[i];
+        vec3_to_M4x1(applied, m4x1_cache_0);
+        avx256_multi_matrix_3x4_4x1(
+            m_Projection.value,
+            m4x1_cache_0.value,
+            m3x1_cache_0.value
+        );
         Vec3 projected = homogeneous3DToCartesian(
-            matrix_to_vec3(
-                multi_matrix(
-                    m_Projection,
-                    vec3_to_M4x1(applied)
-                )
-            )
+            matrix_to_vec3(m3x1_cache_0)
         );
         applieds[i] = projected;
     }

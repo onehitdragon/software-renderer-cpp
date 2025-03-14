@@ -28,6 +28,17 @@ M4x1::M4x1(
 M4x1::~M4x1(){
     _aligned_free(value);
 }
+void M4x1::init(
+    float v00,
+    float v10,
+    float v20,
+    float v30
+){
+    value[0] = v00;
+    value[1] = v10;
+    value[2] = v20;
+    value[3] = v30;
+}
 int M4x1::getM() const{ return 4; }
 int M4x1::getN() const{ return 1; }
 
@@ -72,6 +83,32 @@ M4x4::M4x4(
 }
 M4x4::~M4x4(){
     _aligned_free(value);
+}
+void M4x4::init(
+    float v00, float v01, float v02, float v03,
+    float v10, float v11, float v12, float v13,
+    float v20, float v21, float v22, float v23,
+    float v30, float v31, float v32, float v33
+){
+    value[0] = v00;
+    value[1] = v01;
+    value[2] = v02;
+    value[3] = v03;
+
+    value[4] = v10;
+    value[5] = v11;
+    value[6] = v12;
+    value[7] = v13;
+    
+    value[8] = v20;
+    value[9] = v21;
+    value[10] = v22;
+    value[11] = v23;
+
+    value[12] = v30;
+    value[13] = v31;
+    value[14] = v32;
+    value[15] = v33;
 }
 int M4x4::getM() const{ return 4; }
 int M4x4::getN() const{ return 4; }
@@ -207,6 +244,15 @@ M4x1 vec3_to_M4x1(const Vec3 &vec3){
     };
 
     return result;
+}
+
+void vec3_to_M4x1(const Vec3 &vec3, M4x1 &result){
+    result.init(
+        vec3.x,
+        vec3.y,
+        vec3.z,
+        1
+    );
 }
 
 Vec3 matrix_to_vec3(const M4x1 &m4x1){
