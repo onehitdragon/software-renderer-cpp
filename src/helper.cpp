@@ -379,8 +379,8 @@ void render_instance(const Instance &instance){
     project(applieds);
 
     std::fill_n(canvasBuffer, canvasBufferLength, 255);
-    for(int i = 0, n = clippingTriangles.size(); i < n; i++){
-        Triangle triangle = clippingTriangles[i];
-        renderTriangle(triangle, applieds);
-    }
+    // for(int i = 0, n = clippingTriangles.size(); i < n; i++){
+    //     Triangle triangle = clippingTriangles[i];
+    //     renderTriangle(triangle, applieds);
+    // }
 }

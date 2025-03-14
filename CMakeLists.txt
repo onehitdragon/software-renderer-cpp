@@ -17,6 +17,7 @@ find_package(SDL3_ttf REQUIRED)
 
 file(GLOB SOURCES "src/*.cpp" "src/common/*.cpp")
 add_executable(cgcpp ${SOURCES})
+target_compile_options(cgcpp PRIVATE -mavx)
 
 target_link_libraries(cgcpp PRIVATE
     SDL3_ttf::SDL3_ttf

@@ -11,15 +11,16 @@ public:
 
 class M3x1: public Matrix{
 public:
-    float value[3][1];
+    float *value;
     M3x1();
+    ~M3x1();
     int getM() const override;
     int getN() const override;
 };
 
 class M4x1: public Matrix{
 public:
-    float value[4][1];
+    float *value;
     M4x1();
     M4x1(
         float v00,
@@ -27,21 +28,23 @@ public:
         float v20,
         float v30
     );
+    ~M4x1();
     int getM() const override;
     int getN() const override;
 };
 
 class M3x3: public Matrix{
 public:
-    float value[3][3];
+    float *value;
     M3x3();
+    ~M3x3();
     int getM() const override;
     int getN() const override;
 };
 
 class M4x4: public Matrix{
 public:
-    float value[4][4];
+    float *value;
     M4x4();
     M4x4(
         float v00, float v01, float v02, float v03,
@@ -49,19 +52,21 @@ public:
         float v20, float v21, float v22, float v23,
         float v30, float v31, float v32, float v33
     );
+    ~M4x4();
     int getM() const override;
     int getN() const override;
 };
 
 class M3x4: public Matrix{
 public:
-    float value[3][4];
+    float *value;
     M3x4();
     M3x4(
         float v00, float v01, float v02, float v03,
         float v10, float v11, float v12, float v13,
         float v20, float v21, float v22, float v23
     );
+    ~M3x4();
     int getM() const override;
     int getN() const override;
 };
