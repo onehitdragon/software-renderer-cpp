@@ -140,6 +140,26 @@ M3x4::M3x4(
 M3x4::~M3x4(){
     _aligned_free(value);
 }
+void M3x4::init(
+    float v00, float v01, float v02, float v03,
+    float v10, float v11, float v12, float v13,
+    float v20, float v21, float v22, float v23
+){
+    value[0] = v00;
+    value[1] = v01;
+    value[2] = v02;
+    value[3] = v03;
+
+    value[4] = v10;
+    value[5] = v11;
+    value[6] = v12;
+    value[7] = v13;
+    
+    value[8] = v20;
+    value[9] = v21;
+    value[10] = v22;
+    value[11] = v23;
+}
 int M3x4::getM() const{ return 3; }
 int M3x4::getN() const{ return 4; }
 

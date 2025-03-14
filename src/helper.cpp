@@ -356,23 +356,24 @@ std::vector<Vec3> apply(const Instance &instance){
     return applieds;
 }
 
-M3x4 makeProjectionTransform(){
-    return {
+M3x4 m_projection;
+void makeProjectionTransform(){
+    m_projection.init(
         camera.distanceToViewport * canvas_cW / viewport_vW, 0, 0, 0,
         0, camera.distanceToViewport * canvas_cH / viewport_vH, 0, 0,
         0, 0, 1, 0
-    };
+    );
 }
 
 M3x1 m3x1_cache_0;
 void project(std::vector<Vec3> &applieds){
-    M3x4 m_Projection = makeProjectionTransform();
+    makeProjectionTransform();
 
     for(int i = 0, n = applieds.size(); i < n; i++){
         Vec3 applied = applieds[i];
         vec3_to_M4x1(applied, m4x1_cache_0);
         avx256_multi_matrix_3x4_4x1(
-            m_Projection.value,
+            m_projection.value,
             m4x1_cache_0.value,
             m3x1_cache_0.value
         );
@@ -392,8 +393,8 @@ void render_instance(const Instance &instance){
     project(applieds);
 
     std::fill_n(canvasBuffer, canvasBufferLength, 255);
-    // for(int i = 0, n = clippingTriangles.size(); i < n; i++){
-    //     Triangle triangle = clippingTriangles[i];
-    //     renderTriangle(triangle, applieds);
-    // }
+    for(int i = 0, n = clippingTriangles.size(); i < n; i++){
+        Triangle triangle = clippingTriangles[i];
+        renderTriangle(triangle, applieds);
+    }
 }
