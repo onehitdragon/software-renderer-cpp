@@ -5,7 +5,10 @@
 
 extern Model *teapotModel;
 extern Instance teapotInstance;
-
 void createTeapotInstance();
+
+extern Model *cubeModel;
+extern Instance cubeInstance;
+void createCubeInstance();
 
 #endif

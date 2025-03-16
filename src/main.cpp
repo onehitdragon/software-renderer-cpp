@@ -22,6 +22,7 @@ int main(){
     init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 2, 2);
     init_fixed_number(4);
     createTeapotInstance();
+    createCubeInstance();
 
     if(!SDL_Init(SDL_INIT_VIDEO)){
         std::cout << "fail SDL_INIT_VIDEO" << std::endl;
@@ -66,6 +67,8 @@ int main(){
     int fps = 0;
     std::string fpsText = "FPS: ";
     Uint64 startTime = SDL_GetTicks();
+    Instance inst = std::ref(teapotInstance);
+    int idx = 0;
     while(loop){
         SDL_Event event;
         while(SDL_PollEvent(&event)){
@@ -73,11 +76,26 @@ int main(){
                 loop = false;
             }
             if(event.type == SDL_EVENT_KEY_DOWN){
+                idx++;
+            }
+            if(event.type == SDL_EVENT_KEY_DOWN){
+                if(event.key.key == SDLK_LEFT){
+                    inst.transform.translation.x -= 0.1f;
+                }
+                if(event.key.key == SDLK_RIGHT){
+                    inst.transform.translation.x += 0.1f;
+                }
+                if(event.key.key == SDLK_UP){
+                    inst.transform.translation.y += 0.1f;
+                }
+                if(event.key.key == SDLK_DOWN){
+                    inst.transform.translation.y -= 0.1f;
+                }
             }
         }
 
         // main
-        render_instance(teapotInstance);
+        render_instance(inst, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
 
@@ -99,6 +117,7 @@ int main(){
 
         // final
         SDL_RenderPresent(renderer);
+        // break;
     }
 
     return 0;

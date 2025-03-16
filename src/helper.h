@@ -3,6 +3,6 @@
 
 #include "global.h"
 
-void render_instance(const Instance &instance);
+void render_instance(const Instance &instance, int idx);
 
 #endif
