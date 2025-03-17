@@ -72,118 +72,6 @@ void drawFilledTriangle(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
     xMin = xMin & ~(q - 1);
     yMin = yMin & ~(q - 1);
 
-    for(int y = yMin; y < yMax; y += q){
-        for(int x = xMin; x < xMax; x += q){
-            int x0 = (x << fixedNumber_RESOLUTION) + 8;
-            int y0 = (y << fixedNumber_RESOLUTION) + 8;
-            int x1 = ((x + q - 1) << fixedNumber_RESOLUTION) + 8;
-            int y1 = ((y + q - 1) << fixedNumber_RESOLUTION) + 8;
-
-            bool _00_12 = C1 + dx12 * y0 - dy12 * x0 < 0;
-            bool _10_12 = C1 + dx12 * y0 - dy12 * x1 < 0;
-            bool _01_12 = C1 + dx12 * y1 - dy12 * x0 < 0;
-            bool _11_12 = C1 + dx12 * y1 - dy12 * x1 < 0;
-
-            bool _00_23 = C2 + dx23 * y0 - dy23 * x0 < 0;
-            bool _10_23 = C2 + dx23 * y0 - dy23 * x1 < 0;
-            bool _01_23 = C2 + dx23 * y1 - dy23 * x0 < 0;
-            bool _11_23 = C2 + dx23 * y1 - dy23 * x1 < 0;
-
-            bool _00_31 = C3 + dx31 * y0 - dy31 * x0 < 0;
-            bool _10_31 = C3 + dx31 * y0 - dy31 * x1 < 0;
-            bool _01_31 = C3 + dx31 * y1 - dy31 * x0 < 0;
-            bool _11_31 = C3 + dx31 * y1 - dy31 * x1 < 0;
-
-            int a = 
-                _00_12 + _10_12 + _01_12 + _11_12 +
-                _00_23 + _10_23 + _01_23 + _11_23 +
-                _00_31 + _10_31 + _01_31 + _11_31;
-
-            if(a == 0){
-                continue; // ignore block
-            }
-
-            if(a == 12){
-                // accept block
-                for(int yi = y; yi < y + q; yi++){
-                    for(int xi = x; xi < x + q; xi++){
-                        putPixel(xi, yi, color);
-                    }
-                }
-            }
-            else{
-                // partially block
-                int cy12 = C1 + dx12 * y0 - dy12 * x0;
-                int cy23 = C2 + dx23 * y0 - dy23 * x0;
-                int cy31 = C3 + dx31 * y0 - dy31 * x0;
-                for(int yi = y; yi < y + q; yi++){
-                    int cx12 = cy12;
-                    int cx23 = cy23;
-                    int cx31 = cy31;
-                    for(int xi = x; xi < x + q; xi++){
-                        if(cx12 < 0 && cx23 < 0 && cx31 < 0){
-                            putPixel(xi, yi, color);
-                        }
-                        cx12 -= dy12F;
-                        cx23 -= dy23F;
-                        cx31 -= dy31F;
-                    }
-                    cy12 += dx12F;
-                    cy23 += dx23F;
-                    cy31 += dx31F;
-                }
-            }
-            
-        }
-    }
-}
-
-void drawFilledTriangle2(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
-    p1 = viewportToCanvasCoordinate(p1);
-    p2 = viewportToCanvasCoordinate(p2);
-    p3 = viewportToCanvasCoordinate(p3);
-
-    Vec2 p12 = subVec((Vec2)p2, (Vec2)p1);
-    Vec2 p13 = subVec((Vec2)p3, (Vec2)p1);
-    if(scalarCrossVec(p12, p13) > 0){
-        swapVec(p2, p3);
-    }
-
-    Vec2Int p1F = fixedNumber_fixedXY(p1);
-    Vec2Int p2F = fixedNumber_fixedXY(p2);
-    Vec2Int p3F = fixedNumber_fixedXY(p3);
-    int xMin = std::min(p1F.x, std::min(p2F.x, p3F.x)) >> fixedNumber_RESOLUTION;
-    int yMin = std::min(p1F.y, std::min(p2F.y, p3F.y)) >> fixedNumber_RESOLUTION;
-    int xMax = (std::max(p1F.x, std::max(p2F.x, p3F.x)) + 15) >> fixedNumber_RESOLUTION;
-    int yMax = (std::max(p1F.y, std::max(p2F.y, p3F.y)) + 15) >> fixedNumber_RESOLUTION;
-    int dx12 = p2F.x - p1F.x;
-    int dx23 = p3F.x - p2F.x;
-    int dx31 = p1F.x - p3F.x;
-    int dy12 = p2F.y - p1F.y;
-    int dy23 = p3F.y - p2F.y;
-    int dy31 = p1F.y - p3F.y;
-    int dx12F = dx12 << fixedNumber_RESOLUTION;
-    int dx23F = dx23 << fixedNumber_RESOLUTION;
-    int dx31F = dx31 << fixedNumber_RESOLUTION;
-    int dy12F = dy12 << fixedNumber_RESOLUTION;
-    int dy23F = dy23 << fixedNumber_RESOLUTION;
-    int dy31F = dy31 << fixedNumber_RESOLUTION;
-    int C1 = dy12 * p1F.x - dx12 * p1F.y;
-    int C2 = dy23 * p2F.x - dx23 * p2F.y;
-    int C3 = dy31 * p3F.x - dx31 * p3F.y;
-    if(dy12 > 0 || (dy12 == 0 && dx12 < 0)){
-        C1--;
-    }
-    if(dy23 > 0 || (dy23 == 0 && dx23 < 0)){
-        C2--;
-    }
-    if(dy31 > 0 || (dy31 == 0 && dx31 < 0)){
-        C3--;
-    }
-
-    int q = 4;
-    xMin = xMin & ~(q - 1);
-    yMin = yMin & ~(q - 1);
     Vec2Int n12 = {-dy12, dx12};
     Vec2Int n23 = {-dy23, dx23};
     Vec2Int n31 = {-dy31, dx31};
@@ -206,9 +94,7 @@ void drawFilledTriangle2(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
             bool _00_23 = C2 + dx23 * y_t23 - dy23 * x_t23 < 0;
             bool _00_31 = C3 + dx31 * y_t31 - dy31 * x_t31 < 0;
 
-            int a = _00_12 + _00_23 + _00_31;
-
-            if(a == 0){
+            if(!_00_12 || !_00_23 || !_00_31){
                 // ignore block
                 continue;
             }
@@ -224,7 +110,7 @@ void drawFilledTriangle2(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
                     int cx23 = cy23;
                     int cx31 = cy31;
                     for(int xi = x; xi < x + q; xi++){
-                        if(cx12 < 0 && cx23 < 0 && cx31 < 0){
+                        if((cx12 & cx23 & cx31) < 0){
                             putPixel(xi, yi, color);
                         }
                         cx12 -= dy12F;
@@ -242,7 +128,7 @@ void drawFilledTriangle2(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
 }
 
 void renderTriangle(const Triangle &triangle, const std::vector<Vec3> &projecteds){
-    drawFilledTriangle2(
+    drawFilledTriangle(
         projecteds[triangle.x],
         projecteds[triangle.y],
         projecteds[triangle.z],
@@ -499,8 +385,8 @@ void render_instance(const Instance &instance, int idx){
     std::fill_n(canvasBuffer, canvasBufferLength, 255);
     for(int i = 0, n = clippingTriangles.size(); i < n; i++){
         Triangle triangle = clippingTriangles[i];
-        //if(i == idx){
+        // if(i == idx){
             renderTriangle(triangle, applieds);
-        //}
+        // }
     }
 }

@@ -95,6 +95,7 @@ int main(){
         }
 
         // main
+        // inst.transform.rotation += 0.1f;
         render_instance(inst, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
