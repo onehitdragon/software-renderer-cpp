@@ -8,7 +8,7 @@ void init_fixed_number(unsigned int resolution){
     fixedNumber_MULTIPLIER = std::pow(2, resolution);
 }
 
-Vec2Int fixedNumber_fixedXY(const Vec3 &vec){
+Vec2Int fixedNumber_fixedXY(const Vec2 &vec){
     return {
         (int)std::round(vec.x * fixedNumber_MULTIPLIER),
         (int)std::round(vec.y * fixedNumber_MULTIPLIER)

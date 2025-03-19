@@ -8,33 +8,105 @@
 #include <string>
 #include <iostream>
 #include <immintrin.h>
+#include "asset.h"
 
-Vec3 viewportToCanvasCoordinate(const Vec3 &vec3){
+Vec2 viewportToCanvasCoordinate(const Vec3 &vec3){
     return {
         vec3.x + canvas_half_cW,
-        -vec3.y + canvas_half_cH,
-        vec3.z
+        -vec3.y + canvas_half_cH
     };
 }
 
-void putPixel(const int &x, const int &y, const Vec4 &color){
-    int offset = (x * 4) + (y * canvas_four_mul_cW);
+void putPixel(const int &x, const int &y, const Vec4 &color, const float &dept){
+    int offset;
+    offset = x  + (y * canvas_cW);
+    if(dept <= deptBuffer[offset]){
+        return;
+    }
+    deptBuffer[offset] = dept;
+
+    offset = (x * 4) + (y * canvas_four_mul_cW);
     canvasBuffer[offset + 0] = color.x;
     canvasBuffer[offset + 1] = color.y;
     canvasBuffer[offset + 2] = color.z;
     canvasBuffer[offset + 3] = color.w;
 }
 
-void drawFilledTriangle(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
-    p1 = viewportToCanvasCoordinate(p1);
-    p2 = viewportToCanvasCoordinate(p2);
-    p3 = viewportToCanvasCoordinate(p3);
-
-    Vec2 p12 = subVec((Vec2)p2, (Vec2)p1);
-    Vec2 p13 = subVec((Vec2)p3, (Vec2)p1);
-    if(scalarCrossVec(p12, p13) > 0){
-        swapVec(p2, p3);
+Vec4 getTexel(
+    const bool &swaped, const TextureCoor &textureCoor,
+    const float &_1_over_z,
+    const Vec3 &p1_o, const Vec3 &p2_o, const Vec3 &p3_o,
+    const float &u, const float &v
+){
+    Vec2 uv1 = {textureCoor.uv1.x, textureCoor.uv1.y};
+    Vec2 uv2 = {textureCoor.uv2.x, textureCoor.uv2.y};
+    Vec2 uv3 = {textureCoor.uv3.x, textureCoor.uv3.y};
+    if(swaped){
+        swapVec(uv2, uv3);
     }
+
+    // Vec2 uv = addVec(
+    //     uv1,
+    //     addVec(scalarVec(u, subVec(uv2, uv1)), scalarVec(v, subVec(uv3, uv1)))
+    // );
+
+    uv1 = divineVec(uv1, p1_o.z);
+    uv2 = divineVec(uv2, p2_o.z);
+    uv3 = divineVec(uv3, p3_o.z);
+    Vec2 uv =
+    divineVec(
+        addVec(
+            uv1,
+            addVec(
+                scalarVec(u, subVec(uv2, uv1)),
+                scalarVec(v, subVec(uv3, uv1))
+            )
+        ),
+        _1_over_z
+    );
+
+    // std::cout << "(" << textureCoor.uv3.x << ", " << textureCoor.uv3.y << " | " << uv.x << ", " << uv.y << ") ";
+    if(uv.x < 0) uv.x = 0;
+    if(uv.x > 1) uv.x = 1;
+    if(uv.y < 0) uv.y = 0;
+    if(uv.y > 1) uv.y = 1;
+    int uv_w = std::floor(crateTexture_width * uv.x);
+    int uv_h = std::floor(crateTexture_height * (1 - uv.y));
+    int offset = uv_w * 3 + uv_h * crateTexture_pitch;
+    // std::cout << uv.x << ", " << uv.y << " | " << offset << " ";
+    Vec4 texel = {
+        (float)crateTexture_pixels[offset],
+        (float)crateTexture_pixels[offset + 1],
+        (float)crateTexture_pixels[offset + 2],
+        255
+    };
+
+    return texel;
+}
+
+float interpolate_1_over_z(
+    const Vec3 &p1_o, const Vec3 &p2_o, const Vec3 &p3_o,
+    const float &u, const float &v
+){
+    return (1/p1_o.z) + u * (1/p2_o.z - 1/p1_o.z) + v * (1/p3_o.z - 1/p1_o.z);
+}
+
+void drawFilledTriangle2(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &textureCoor){
+    Vec2 p1 = viewportToCanvasCoordinate(p1_o);
+    Vec2 p2 = viewportToCanvasCoordinate(p2_o);
+    Vec2 p3 = viewportToCanvasCoordinate(p3_o);
+
+    Vec2 p12 = subVec(p2, p1);
+    Vec2 p13 = subVec(p3, p1);
+    float signedArea = scalarCrossVec(p12, p13);
+    if(signedArea > 0){
+        swapVec(p2, p3);
+        swapVec(p2_o, p3_o);
+    }
+
+    p13 = subVec(p3, p1);
+    Vec2 p21 = subVec(p1, p2);
+    float area = std::abs(signedArea);
 
     Vec2Int p1F = fixedNumber_fixedXY(p1);
     Vec2Int p2F = fixedNumber_fixedXY(p2);
@@ -111,7 +183,18 @@ void drawFilledTriangle(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
                     int cx31 = cy31;
                     for(int xi = x; xi < x + q; xi++){
                         if((cx12 & cx23 & cx31) < 0){
-                            putPixel(xi, yi, color);
+                            //
+                            Vec2 p1p = subVec({(float)xi, (float)yi}, p1);
+                            Vec2 p2p = subVec({(float)xi, (float)yi}, p2);
+                            float u = scalarCrossVec(p13, p1p) / area;
+                            float v = scalarCrossVec(p21, p2p) / area;
+                            float _1_over_z = interpolate_1_over_z(p1_o, p2_o, p3_o, u, v);
+                            // std::cout << u << ", " << v << ", " << w << " :" << u + v + w << std::endl;
+                            // std::cout << _1_over_z << " ";
+
+                            Vec4 color = getTexel(signedArea > 0, textureCoor, _1_over_z, p1_o, p2_o, p3_o, u, v);
+                            //
+                            putPixel(xi, yi, color, _1_over_z);
                         }
                         cx12 -= dy12F;
                         cx23 -= dy23F;
@@ -122,17 +205,20 @@ void drawFilledTriangle(Vec3 p1, Vec3 p2, Vec3 p3, const Vec4 &color){
                     cy31 += dx31F;
                 }
             }
-            
         }
     }
 }
 
-void renderTriangle(const Triangle &triangle, const std::vector<Vec3> &projecteds){
-    drawFilledTriangle(
+void renderTriangle(
+    const Triangle &triangle,
+    const TextureCoor &textureCoor,
+    const std::vector<Vec3> &projecteds
+){
+    drawFilledTriangle2(
         projecteds[triangle.x],
         projecteds[triangle.y],
         projecteds[triangle.z],
-        {0, 0, 0, 255}
+        textureCoor
     );
 }
 
@@ -383,10 +469,12 @@ void render_instance(const Instance &instance, int idx){
     project(applieds);
 
     std::fill_n(canvasBuffer, canvasBufferLength, 255);
+    std::fill_n(deptBuffer, deptBufferLength, -std::numeric_limits<float>::max());
     for(int i = 0, n = clippingTriangles.size(); i < n; i++){
         Triangle triangle = clippingTriangles[i];
-        // if(i == idx){
-            renderTriangle(triangle, applieds);
+        TextureCoor textureCoor = instance.model->textureCoors[i];
+        // if(i == 0 || i == 1 || i == 4 || i == 5){
+            renderTriangle(triangle, textureCoor, applieds);
         // }
     }
 }

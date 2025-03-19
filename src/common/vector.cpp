@@ -10,6 +10,12 @@ Vec3::Vec3(float x, float y, float z): Vec2(x, y), z(z){}
 Vec4::Vec4(): w(0){}
 Vec4::Vec4(float x, float y, float z, float w): Vec3(x, y, z), w(w){};
 
+Vec2 addVec(const Vec2 &vec1, const Vec2 &vec2){
+    return {
+        vec1.x + vec2.x,
+        vec1.y + vec2.y
+    };
+}
 Vec3 addVec(const Vec3 &vec1, const Vec3 &vec2){
     return {
         vec1.x + vec2.x,
@@ -37,6 +43,18 @@ Vec3 scalarVec(const float &scalar, const Vec3 &vec){
         vec.z * scalar
     };
 }
+Vec2 scalarVec(const float &scalar, const Vec2 &vec){
+    return {
+        vec.x * scalar,
+        vec.y * scalar
+    };
+}
+Vec2 divineVec(const Vec2 &vec, const float &num){
+    return {
+        vec.x / num,
+        vec.y / num
+    };
+}
 float scalarCrossVec(const Vec2 &vec1, const Vec2 &vec2){
     return (vec1.x * vec2.y) - (vec1.y * vec2.x);
 }
@@ -59,6 +77,11 @@ Vec3 homogeneous3DToCartesian(const Vec3 &vec3){
 }
 void swapVec(Vec3 &vec1, Vec3 &vec2){
     Vec3 temp = vec1;
+    vec1 = vec2;
+    vec2 = temp;
+}
+void swapVec(Vec2 &vec1, Vec2 &vec2){
+    Vec2 temp = vec1;
     vec1 = vec2;
     vec2 = temp;
 }

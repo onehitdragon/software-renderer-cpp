@@ -14,10 +14,20 @@ public:
     Triangle(int x, int y, int z, Vec4 color);
 };
 
+class TextureCoor{
+public:
+    Vec2 uv1;
+    Vec2 uv2;
+    Vec2 uv3;
+    TextureCoor();
+    TextureCoor(Vec2 uv1, Vec2 uv2, Vec2 uv3);
+};
+
 class Model{
 public:
     std::vector<Vec3> vertices;
     std::vector<Triangle> triangles;
+    std::vector<TextureCoor> textureCoors;
     Model();
     Model(int num_vertices, int num_triangles);
 };
@@ -57,6 +67,8 @@ extern unsigned char *canvasBuffer;
 extern size_t canvasBufferLength;
 extern float viewport_vW;
 extern float viewport_vH;
+extern float *deptBuffer;
+extern size_t deptBufferLength;
 void init_canvas_buffer(unsigned int cW, unsigned int cH, float vW, float vH);
 
 #endif

@@ -5,6 +5,7 @@
 #include "teapotmodel.h"
 #include "common/fixednumber.h"
 #include "helper.h"
+#include "asset.h"
 
 const int WINDOW_WIDTH = 500;
 const int WINDOW_HEIGHT = 500;
@@ -19,10 +20,11 @@ void initPixels(){
 }
 
 int main(){
-    init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 2, 2);
+    init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1);
     init_fixed_number(4);
     createTeapotInstance();
     createCubeInstance();
+    createCrateTexture();
 
     if(!SDL_Init(SDL_INIT_VIDEO)){
         std::cout << "fail SDL_INIT_VIDEO" << std::endl;
@@ -67,7 +69,7 @@ int main(){
     int fps = 0;
     std::string fpsText = "FPS: ";
     Uint64 startTime = SDL_GetTicks();
-    Instance inst = std::ref(teapotInstance);
+    Instance inst = std::ref(cubeInstance);
     int idx = 0;
     while(loop){
         SDL_Event event;
@@ -91,11 +93,18 @@ int main(){
                 if(event.key.key == SDLK_DOWN){
                     inst.transform.translation.y -= 0.1f;
                 }
+                if(event.key.key == SDLK_PAGEUP){
+                    inst.transform.translation.z += 0.1f;
+                }
+                if(event.key.key == SDLK_PAGEDOWN){
+                    inst.transform.translation.z -= 0.1f;
+                }
             }
         }
 
         // main
-        // inst.transform.rotation += 0.1f;
+        inst.transform.rotation -= 0.5f;
+        // std::cout << inst.transform.rotation << " ";
         render_instance(inst, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);

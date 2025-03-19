@@ -8,7 +8,11 @@ Model::Model(){}
 Model::Model(int num_vertices, int num_triangles){
     vertices.reserve(num_vertices);
     triangles.reserve(num_triangles);
+    textureCoors.reserve(num_triangles);
 }
+
+TextureCoor::TextureCoor(){}
+TextureCoor::TextureCoor(Vec2 uv1, Vec2 uv2, Vec2 uv3): uv1(uv1), uv2(uv2), uv3(uv3){}
 
 Transform::Transform(){}
 Transform::Transform(Vec3 translation, float rotation, float scale): translation(translation), rotation(rotation), scale(scale){}
@@ -29,6 +33,10 @@ Uint8 *canvasBuffer = nullptr;
 size_t canvasBufferLength = 0;
 float viewport_vW = 0;
 float viewport_vH = 0;
+
+float *deptBuffer;
+size_t deptBufferLength;
+
 void init_canvas_buffer(unsigned int cW, unsigned int cH, float vW, float vH){
     canvas_cW = cW;
     canvas_cH = cH;
@@ -39,4 +47,7 @@ void init_canvas_buffer(unsigned int cW, unsigned int cH, float vW, float vH){
     canvas_half_cW = cW / (float)2;
     canvas_half_cH = cH / (float)2;
     canvas_four_mul_cW = cW * 4;
+
+    deptBufferLength = cW * cH;
+    deptBuffer = new float[deptBufferLength];
 }
