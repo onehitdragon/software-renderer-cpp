@@ -36,6 +36,12 @@ Vec2 subVec(const Vec2 &vec1, const Vec2 &vec2){
         vec1.y - vec2.y
     };
 }
+Vec2Int subVec(const Vec2Int &vec1, const Vec2Int &vec2){
+    return {
+        vec1.x - vec2.x,
+        vec1.y - vec2.y
+    };
+}
 Vec3 scalarVec(const float &scalar, const Vec3 &vec){
     return {
         vec.x * scalar,
@@ -56,6 +62,9 @@ Vec2 divineVec(const Vec2 &vec, const float &num){
     };
 }
 float scalarCrossVec(const Vec2 &vec1, const Vec2 &vec2){
+    return (vec1.x * vec2.y) - (vec1.y * vec2.x);
+}
+int scalarCrossVec(const Vec2Int &vec1, const Vec2Int &vec2){
     return (vec1.x * vec2.y) - (vec1.y * vec2.x);
 }
 float lengthVec(const Vec3 &vec){

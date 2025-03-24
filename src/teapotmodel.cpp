@@ -13922,6 +13922,5 @@ Instance cubeInstance;
 void createCubeInstance(){
     createCubeModel();
     cubeInstance.model = cubeModel;
-    cubeInstance.transform = {{0, 0, 6}, 00, 1};
-    // cubeInstance.transform = {{0, 0, 6}, 0, 1};
+    cubeInstance.transform = {{0, 0, 4.5}, 0, 1};
 };

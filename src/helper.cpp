@@ -9,12 +9,22 @@
 #include <iostream>
 #include <immintrin.h>
 #include "asset.h"
+#include <algorithm>
 
 Vec2 viewportToCanvasCoordinate(const Vec3 &vec3){
     return {
         vec3.x + canvas_half_cW,
         -vec3.y + canvas_half_cH
     };
+}
+
+void putPixel(const int &x, const int &y){
+    Vec4 color = {0, 0, 0, 255};
+    int offset = (x * 4) + (y * canvas_four_mul_cW);
+    canvasBuffer[offset + 0] = color.x;
+    canvasBuffer[offset + 1] = color.y;
+    canvasBuffer[offset + 2] = color.z;
+    canvasBuffer[offset + 3] = color.w;
 }
 
 void putPixel(const int &x, const int &y, const Vec4 &color, const float &dept){
@@ -33,51 +43,34 @@ void putPixel(const int &x, const int &y, const Vec4 &color, const float &dept){
 }
 
 Vec4 getTexel(
-    const bool &swaped, const TextureCoor &textureCoor,
+    const Vec2 &uv1, const Vec2 &uv12, const Vec2 &uv13,
     const float &_1_over_z,
-    const Vec3 &p1_o, const Vec3 &p2_o, const Vec3 &p3_o,
     const float &u, const float &v
 ){
-    Vec2 uv1 = {textureCoor.uv1.x, textureCoor.uv1.y};
-    Vec2 uv2 = {textureCoor.uv2.x, textureCoor.uv2.y};
-    Vec2 uv3 = {textureCoor.uv3.x, textureCoor.uv3.y};
-    if(swaped){
-        swapVec(uv2, uv3);
-    }
-
-    // Vec2 uv = addVec(
-    //     uv1,
-    //     addVec(scalarVec(u, subVec(uv2, uv1)), scalarVec(v, subVec(uv3, uv1)))
-    // );
-
-    uv1 = divineVec(uv1, p1_o.z);
-    uv2 = divineVec(uv2, p2_o.z);
-    uv3 = divineVec(uv3, p3_o.z);
     Vec2 uv =
     divineVec(
         addVec(
             uv1,
             addVec(
-                scalarVec(u, subVec(uv2, uv1)),
-                scalarVec(v, subVec(uv3, uv1))
+                scalarVec(u, uv12),
+                scalarVec(v, uv13)
             )
         ),
         _1_over_z
     );
+    
 
     // std::cout << "(" << textureCoor.uv3.x << ", " << textureCoor.uv3.y << " | " << uv.x << ", " << uv.y << ") ";
-    if(uv.x < 0) uv.x = 0;
-    if(uv.x > 1) uv.x = 1;
-    if(uv.y < 0) uv.y = 0;
-    if(uv.y > 1) uv.y = 1;
+    uv.x = std::clamp(uv.x, 0.0f, 1.0f);
+    uv.y = std::clamp(uv.y, 0.0f, 1.0f);
     int uv_w = std::floor(crateTexture_width * uv.x);
     int uv_h = std::floor(crateTexture_height * (1 - uv.y));
     int offset = uv_w * 3 + uv_h * crateTexture_pitch;
     // std::cout << uv.x << ", " << uv.y << " | " << offset << " ";
     Vec4 texel = {
-        (float)crateTexture_pixels[offset],
-        (float)crateTexture_pixels[offset + 1],
-        (float)crateTexture_pixels[offset + 2],
+        static_cast<float>(crateTexture_pixels[offset]),
+        static_cast<float>(crateTexture_pixels[offset + 1]),
+        static_cast<float>(crateTexture_pixels[offset + 2]),
         255
     };
 
@@ -91,7 +84,7 @@ float interpolate_1_over_z(
     return (1/p1_o.z) + u * (1/p2_o.z - 1/p1_o.z) + v * (1/p3_o.z - 1/p1_o.z);
 }
 
-void drawFilledTriangle2(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &textureCoor){
+void drawFilledTriangle(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &textureCoor){
     Vec2 p1 = viewportToCanvasCoordinate(p1_o);
     Vec2 p2 = viewportToCanvasCoordinate(p2_o);
     Vec2 p3 = viewportToCanvasCoordinate(p3_o);
@@ -101,12 +94,7 @@ void drawFilledTriangle2(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &tex
     float signedArea = scalarCrossVec(p12, p13);
     if(signedArea > 0){
         swapVec(p2, p3);
-        swapVec(p2_o, p3_o);
     }
-
-    p13 = subVec(p3, p1);
-    Vec2 p21 = subVec(p1, p2);
-    float area = std::abs(signedArea);
 
     Vec2Int p1F = fixedNumber_fixedXY(p1);
     Vec2Int p2F = fixedNumber_fixedXY(p2);
@@ -151,6 +139,23 @@ void drawFilledTriangle2(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &tex
     Vec2Int t23 = { n23.x <= 0 ? q - 1 : 0, n23.y <= 0 ? q - 1 : 0 };
     Vec2Int t31 = { n31.x <= 0 ? q - 1 : 0, n31.y <= 0 ? q - 1 : 0 };
 
+    int area = scalarCrossVec(
+        subVec(p2F, p1F),
+        subVec(p3F, p1F)
+    );
+    Vec2 uv1 = {textureCoor.uv1.x, textureCoor.uv1.y};
+    Vec2 uv2 = {textureCoor.uv2.x, textureCoor.uv2.y};
+    Vec2 uv3 = {textureCoor.uv3.x, textureCoor.uv3.y};
+    if(signedArea > 0){
+        swapVec(uv2, uv3);
+        swapVec(p2_o, p3_o);
+    }
+    uv1 = divineVec(uv1, p1_o.z);
+    uv2 = divineVec(uv2, p2_o.z);
+    uv3 = divineVec(uv3, p3_o.z);
+    Vec2 uv12 = subVec(uv2, uv1);
+    Vec2 uv13 = subVec(uv3, uv1);
+
     for(int y = yMin; y < yMax; y += q){
         for(int x = xMin; x < xMax; x += q){
             int x_t12 = ((x + t12.x) << fixedNumber_RESOLUTION) + 8;
@@ -184,16 +189,14 @@ void drawFilledTriangle2(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &tex
                     for(int xi = x; xi < x + q; xi++){
                         if((cx12 & cx23 & cx31) < 0){
                             //
-                            Vec2 p1p = subVec({(float)xi, (float)yi}, p1);
-                            Vec2 p2p = subVec({(float)xi, (float)yi}, p2);
-                            float u = scalarCrossVec(p13, p1p) / area;
-                            float v = scalarCrossVec(p21, p2p) / area;
+                            float u = static_cast<float>(cx31) / area;
+                            float v = static_cast<float>(cx12) / area;
                             float _1_over_z = interpolate_1_over_z(p1_o, p2_o, p3_o, u, v);
-                            // std::cout << u << ", " << v << ", " << w << " :" << u + v + w << std::endl;
-                            // std::cout << _1_over_z << " ";
+                            // std::cout << u << ", " << v << std::endl;
+                            Vec4 color = getTexel(uv1, uv12, uv13, _1_over_z, u, v);
 
-                            Vec4 color = getTexel(signedArea > 0, textureCoor, _1_over_z, p1_o, p2_o, p3_o, u, v);
                             //
+                            // putPixel(xi, yi);
                             putPixel(xi, yi, color, _1_over_z);
                         }
                         cx12 -= dy12F;
@@ -214,7 +217,7 @@ void renderTriangle(
     const TextureCoor &textureCoor,
     const std::vector<Vec3> &projecteds
 ){
-    drawFilledTriangle2(
+    drawFilledTriangle(
         projecteds[triangle.x],
         projecteds[triangle.y],
         projecteds[triangle.z],
@@ -473,7 +476,7 @@ void render_instance(const Instance &instance, int idx){
     for(int i = 0, n = clippingTriangles.size(); i < n; i++){
         Triangle triangle = clippingTriangles[i];
         TextureCoor textureCoor = instance.model->textureCoors[i];
-        // if(i == 0 || i == 1 || i == 4 || i == 5){
+        // if(i == 0){
             renderTriangle(triangle, textureCoor, applieds);
         // }
     }

@@ -20,7 +20,7 @@ void initPixels(){
 }
 
 int main(){
-    init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 1, 1);
+    init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 2, 2);
     init_fixed_number(4);
     createTeapotInstance();
     createCubeInstance();
@@ -103,7 +103,7 @@ int main(){
         }
 
         // main
-        inst.transform.rotation -= 0.5f;
+        inst.transform.rotation -= 0.2f;
         // std::cout << inst.transform.rotation << " ";
         render_instance(inst, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
