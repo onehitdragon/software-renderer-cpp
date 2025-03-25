@@ -94,3 +94,15 @@ void swapVec(Vec2 &vec1, Vec2 &vec2){
     vec1 = vec2;
     vec2 = temp;
 }
+std::string vecToString(const Vec3 &vec){
+    std::string s;
+    s.append("(");
+    s.append(std::to_string(vec.x));
+    s.append(", ");
+    s.append(std::to_string(vec.y));
+    s.append(", ");
+    s.append(std::to_string(vec.z));
+    s.append(")");
+    
+    return s;
+}

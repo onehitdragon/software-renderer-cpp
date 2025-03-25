@@ -1,3 +1,4 @@
+#include "helper.h"
 #include "global.h"
 #include "common/matrix.h"
 #include <cmath>
@@ -344,19 +345,23 @@ ClippingPlaneStatus clipWholeObject(const Sphere &boundingSphere){
     return status;
 }
 
-std::vector<Triangle> clipTriangle(
+void clipTriangle(
     const std::vector<Plane> &intersectPlanes,
     std::vector<Vec3> &verticies,
-    const std::vector<Triangle> &triangles
+    const Instance &instance,
+    ClippingInfo &clippingInfo
 ){
-    std::vector<Triangle> trianglesWaitingProcess = triangles;
+    std::vector<Triangle> trianglesWaitingProcess = instance.model->triangles;
+    std::vector<TextureCoor> textureCoorsWaitingProcess = instance.model->textureCoors;
     std::vector<int> trianglesWaitingProcess_plane(trianglesWaitingProcess.size(), 0);
-    std::vector<Triangle> trianglesProcessed;
-    trianglesProcessed.reserve(trianglesWaitingProcess.size());
+    clippingInfo.triangles->reserve(trianglesWaitingProcess.size());
+    clippingInfo.textureCoors->reserve(trianglesWaitingProcess.size());
     
     while(!trianglesWaitingProcess.empty()){
         Triangle triangle = trianglesWaitingProcess.back();
         trianglesWaitingProcess.pop_back();
+        TextureCoor textureCoor = textureCoorsWaitingProcess.back();
+        textureCoorsWaitingProcess.pop_back();
         int startPlane = trianglesWaitingProcess_plane.back();
         trianglesWaitingProcess_plane.pop_back();
         int front = 0;
@@ -377,33 +382,64 @@ std::vector<Triangle> clipTriangle(
                 continue;
             }
             else{
-                if(oneVertexFront(plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, verticies, trianglesWaitingProcess, trianglesWaitingProcess_plane, i)){
+                if(oneVertexFront(
+                    plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, textureCoor,
+                    verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i
+                )){
                     break;
                 }
-                else if(twoVertexFront(plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, verticies, trianglesWaitingProcess, trianglesWaitingProcess_plane, i)){
+                else if(twoVertexFront(
+                    plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, textureCoor,
+                    verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i
+                )){
                     break;
                 }
             }
         }
         if(front == intersectPlanes.size() - startPlane){
-            trianglesProcessed.push_back(triangle);
+            clippingInfo.triangles->push_back(triangle);
+            clippingInfo.textureCoors->push_back(textureCoor);
         }
     }
-
-    return trianglesProcessed;
 }
 
-std::vector<Triangle> clipping(std::vector<Vec3> &applieds, const std::vector<Triangle> &triangles){
+ClippingInfo::ClippingInfo(){
+    status = ClippingStatus::COMPLETE;
+    triangles = NULL;
+    textureCoors = NULL;
+};
+ClippingInfo::~ClippingInfo(){
+    if(status == ClippingStatus::PARTIAL){
+        delete triangles;
+        delete textureCoors;
+    }
+};
+
+ClippingInfo clipping(
+    std::vector<Vec3> &applieds,
+    const Instance &instance
+){
+    ClippingInfo clippingInfo;
+
     initClippingPlanes();
     ClippingPlaneStatus status = clipWholeObject(getBoudingSphere(applieds));
     if(status.rears.size() > 0){
-        return {};
+        return clippingInfo;
     }
     if(status.fronts.size() == clippingPlaneLength){
-        return triangles;
+        clippingInfo.status = ClippingStatus::NO;
+        clippingInfo.triangles = &instance.model->triangles;
+        clippingInfo.textureCoors = &instance.model->textureCoors;
+
+        return clippingInfo;
     }
 
-    return clipTriangle(status.intersects, applieds, triangles);
+    clippingInfo.status = ClippingStatus::PARTIAL;
+    clippingInfo.triangles = new std::vector<Triangle>();
+    clippingInfo.textureCoors = new std::vector<TextureCoor>();
+    clipTriangle(status.intersects, applieds, instance, clippingInfo);
+
+    return clippingInfo;
 }
 
 M4x4 m_cameramodel;
@@ -466,16 +502,16 @@ void project(std::vector<Vec3> &applieds){
 void render_instance(const Instance &instance, int idx){
     std::vector<Vec3> applieds = apply(instance);
 
-    std::vector<Triangle> clippingTriangles = clipping(applieds, instance.model->triangles);
-    if(clippingTriangles.empty()) return;
+    ClippingInfo clippingInfo = clipping(applieds, instance);
+    if(clippingInfo.status == ClippingStatus::COMPLETE) return;
 
     project(applieds);
 
     std::fill_n(canvasBuffer, canvasBufferLength, 255);
     std::fill_n(deptBuffer, deptBufferLength, -std::numeric_limits<float>::max());
-    for(int i = 0, n = clippingTriangles.size(); i < n; i++){
-        Triangle triangle = clippingTriangles[i];
-        TextureCoor textureCoor = instance.model->textureCoors[i];
+    for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
+        Triangle triangle = clippingInfo.triangles->at(i);
+        TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
         // if(i == 0){
             renderTriangle(triangle, textureCoor, applieds);
         // }

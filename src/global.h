@@ -9,9 +9,9 @@ public:
     int x;
     int y;
     int z;
-    Vec4 color;
     Triangle();
-    Triangle(int x, int y, int z, Vec4 color);
+    Triangle(int x, int y, int z);
+    Triangle(int x, int y, int z, Vec4 color); // will be removed
 };
 
 class TextureCoor{

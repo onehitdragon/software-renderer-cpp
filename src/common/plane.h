@@ -31,8 +31,10 @@ bool oneVertexFront(
     const Vec3 &vertexB,
     const Vec3 &vertexC,
     const Triangle &triangle,
+    const TextureCoor &textureCoor,
     std::vector<Vec3> &verticies,
     std::vector<Triangle> &trianglesWaitingProcess,
+    std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
     const int &i
 );
@@ -45,8 +47,10 @@ bool twoVertexFront(
     const Vec3 &vertexB,
     const Vec3 &vertexC,
     const Triangle &triangle,
+    const TextureCoor &textureCoor,
     std::vector<Vec3> &verticies,
     std::vector<Triangle> &trianglesWaitingProcess,
+    std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
     const int &i
 );

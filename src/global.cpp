@@ -2,7 +2,8 @@
 #include <SDL3/SDL.h>
 
 Triangle::Triangle():x(0), y(0), z(0){}
-Triangle::Triangle(int x, int y, int z, Vec4 color): x(x), y(y), z(z), color(color){}
+Triangle::Triangle(int x, int y, int z): x(x), y(y), z(z){}
+Triangle::Triangle(int x, int y, int z, Vec4 color): x(x), y(y), z(z){}
 
 Model::Model(){}
 Model::Model(int num_vertices, int num_triangles){
