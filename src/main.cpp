@@ -6,6 +6,7 @@
 #include "common/fixednumber.h"
 #include "helper.h"
 #include "asset.h"
+#include "importer/fbximporter.h"
 
 const int WINDOW_WIDTH = 500;
 const int WINDOW_HEIGHT = 500;
@@ -25,6 +26,11 @@ int main(){
     createTeapotInstance();
     createCubeInstance();
     createCrateTexture();
+
+    Model *model = new Model();
+    Instance sampleIns = {model};
+    sampleIns.transform = {{0, 0, 4.5}, 0, 1};
+    importFBX("assets/example1.fbx", model);
 
     if(!SDL_Init(SDL_INIT_VIDEO)){
         std::cout << "fail SDL_INIT_VIDEO" << std::endl;
@@ -69,7 +75,7 @@ int main(){
     int fps = 0;
     std::string fpsText = "FPS: ";
     Uint64 startTime = SDL_GetTicks();
-    Instance inst = std::ref(cubeInstance);
+    Instance inst = std::ref(sampleIns);
     int idx = 0;
     while(loop){
         SDL_Event event;

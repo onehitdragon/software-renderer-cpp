@@ -1,5 +1,4 @@
 #include "vector.h"
-#include <cmath>
 
 Vec2::Vec2(): x(0), y(0){}
 Vec2::Vec2(float x, float y): x(x), y(y){}
@@ -94,15 +93,18 @@ void swapVec(Vec2 &vec1, Vec2 &vec2){
     vec1 = vec2;
     vec2 = temp;
 }
-std::string vecToString(const Vec3 &vec){
+std::string vecToString(const float &x, const float &y, const float &z){
     std::string s;
     s.append("(");
-    s.append(std::to_string(vec.x));
+    s.append(std::to_string(x));
     s.append(", ");
-    s.append(std::to_string(vec.y));
+    s.append(std::to_string(y));
     s.append(", ");
-    s.append(std::to_string(vec.z));
+    s.append(std::to_string(z));
     s.append(")");
     
     return s;
+}
+std::string vecToString(const Vec3 &vec){
+    return vecToString(vec.x, vec.y, vec.z);
 }

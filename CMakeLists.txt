@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
+
+set(VCPKG_TARGET_TRIPLET x64-mingw-dynamic)
+set(VCPKG_HOST_TRIPLET x64-mingw-dynamic)
+set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+
 project(cgcpp)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -17,8 +22,9 @@ set(CMAKE_PREFIX_PATH "${SDL3_PACKAGE_PATH};${SDL3_ttf_PACKAGE_PATH};${SDL3_imag
 find_package(SDL3 REQUIRED)
 find_package(SDL3_ttf REQUIRED)
 find_package(SDL3_image REQUIRED)
+find_package(ZLIB REQUIRED)
 
-file(GLOB SOURCES "src/*.cpp" "src/common/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/common/*.cpp" "src/importer/*.cpp")
 add_executable(cgcpp ${SOURCES})
 target_compile_options(cgcpp PRIVATE -march=native -O0)
 
@@ -26,6 +32,7 @@ target_link_libraries(cgcpp PRIVATE
     SDL3_image::SDL3_image
     SDL3_ttf::SDL3_ttf
     SDL3::SDL3
+    ZLIB::ZLIB
 )
 
 add_custom_command(

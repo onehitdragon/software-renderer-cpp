@@ -3,6 +3,7 @@
 
 #include "vectorint.h"
 #include <string>
+#include <cmath>
 
 class Vec2{
 public:
@@ -41,6 +42,7 @@ float dot(const Vec3 &vec1, const Vec3 &vec2);
 Vec3 homogeneous3DToCartesian(const Vec3 &vec3);
 void swapVec(Vec3 &vec1, Vec3 &vec2);
 void swapVec(Vec2 &vec1, Vec2 &vec2);
+std::string vecToString(const float &x, const float &y, const float &z);
 std::string vecToString(const Vec3 &vec);
 
 #endif
