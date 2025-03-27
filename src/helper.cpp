@@ -66,13 +66,13 @@ Vec4 getTexel(
     uv.y = std::clamp(uv.y, 0.0f, 1.0f);
     int uv_w = std::floor(crateTexture_width * uv.x);
     int uv_h = std::floor(crateTexture_height * (1 - uv.y));
-    int offset = uv_w * 3 + uv_h * crateTexture_pitch;
+    int offset = uv_w * 4 + uv_h * crateTexture_pitch;
     // std::cout << uv.x << ", " << uv.y << " | " << offset << " ";
     Vec4 texel = {
         static_cast<float>(crateTexture_pixels[offset]),
         static_cast<float>(crateTexture_pixels[offset + 1]),
         static_cast<float>(crateTexture_pixels[offset + 2]),
-        255
+        static_cast<float>(crateTexture_pixels[offset + 3]),
     };
 
     return texel;
@@ -319,6 +319,12 @@ void renderTriangle(
     const TextureCoor &textureCoor,
     const std::vector<Vec3> &projecteds
 ){
+    // std::cout << vecToString(projecteds[triangle.x]) << std::endl;
+    // std::cout << vecToString(projecteds[triangle.y]) << std::endl;
+    // std::cout << vecToString(projecteds[triangle.z]) << std::endl;
+    // std::cout << textureCoor.uv1.x << " " << textureCoor.uv1.y << std::endl;
+    // std::cout << textureCoor.uv2.x << " " << textureCoor.uv2.y << std::endl;
+    // std::cout << textureCoor.uv3.x << " " << textureCoor.uv3.y << std::endl;
     drawFilledTriangle(
         projecteds[triangle.x],
         projecteds[triangle.y],
@@ -622,9 +628,10 @@ void render_instance(const Instance &instance, int idx){
     std::fill_n(deptBuffer, deptBufferLength, -std::numeric_limits<float>::max());
     for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
         Triangle triangle = clippingInfo.triangles->at(i);
-        // TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
-        // if(i == 0){
-            renderTriangle(triangle, applieds);
+        TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
+        // if(i == 9){
+            // renderTriangle(triangle, applieds);
+            renderTriangle(triangle, textureCoor, applieds);
         // }
     }
 }

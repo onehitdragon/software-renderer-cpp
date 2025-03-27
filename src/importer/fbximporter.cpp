@@ -85,7 +85,6 @@ uint32_t read_ArrayData_get_uncompressedLength(
     }
     throw std::runtime_error("Unsupported array encoding");
 }
-
 void read_ArrayData_uncompress(
     const char &typecode,
     const uint32_t &arrayLength,
@@ -117,7 +116,6 @@ void read_ArrayData_uncompress(
         throw std::runtime_error("Unsupported array encoding");
     }
 }
-
 std::vector<std::variant<float, double, int64_t, int32_t, bool>> read_ArrayData(
     std::ifstream &file, std::ofstream &outfile, const char &typecode, std::string tab_s
 ){
@@ -215,10 +213,13 @@ void copyVerticesToModel(
         std::visit(visitorX, data[i]);
         std::visit(visitorY, data[i + 1]);
         std::visit(visitorZ, data[i + 2]);
-        model->vertices.push_back(vertex);
+        Vec3 vertex_yUp_zForward;
+        vertex_yUp_zForward.x = vertex.x;
+        vertex_yUp_zForward.y = vertex.z;
+        vertex_yUp_zForward.z = vertex.y;
+        model->vertices.push_back(vertex_yUp_zForward);
     }
 }
-
 void copyTrianglesToModel(
     const std::vector<std::variant<float, double, int64_t, int32_t, bool>> &data,
     Model *model
@@ -239,6 +240,46 @@ void copyTrianglesToModel(
         std::visit(visitorY, data[i + 1]);
         std::visit(visitorZ, data[i + 2]);
         model->triangles.push_back(triangle);
+    }
+}
+void copyUVToModel(
+    const std::vector<std::variant<float, double, int64_t, int32_t, bool>> &data,
+    Model *model
+){
+    model->uv.reserve(data.size() / 2);
+    Vec2 uv;
+    auto visitorX = [&uv](const auto &val){
+        uv.x = val;
+    };
+    auto visitorY = [&uv](const auto &val){
+        uv.y = val;
+    };
+    for(int i = 0; i < data.size(); i += 2){
+        std::visit(visitorX, data[i]);
+        std::visit(visitorY, data[i + 1]);
+        model->uv.push_back(uv);
+    }
+}
+void copyUVIndexToModel(
+    const std::vector<std::variant<float, double, int64_t, int32_t, bool>> &data,
+    Model *model
+){
+    model->textureCoors.reserve(data.size() / 3);
+    TextureCoor textureCoor;
+    auto visitorX = [&textureCoor, &model](const auto &val){
+        textureCoor.uv1 = model->uv[val];
+    };
+    auto visitorY = [&textureCoor, &model](const auto &val){
+        textureCoor.uv2 = model->uv[val];
+    };
+    auto visitorZ = [&textureCoor, &model](const auto &val){
+        textureCoor.uv3 = model->uv[val];
+    };
+    for(int i = 0; i < data.size(); i += 3){
+        std::visit(visitorX, data[i]);
+        std::visit(visitorY, data[i + 1]);
+        std::visit(visitorZ, data[i + 2]);
+        model->textureCoors.push_back(textureCoor);
     }
 }
 
@@ -290,10 +331,20 @@ void readNode(std::ifstream &file, std::ofstream &outfile, Model *model, const i
             outfile << std::endl;
 
             if(std::string(node_Name) == "Vertices"){
+                std::cout << "Vertices: " << array.size() / 3 << std::endl;
                 copyVerticesToModel(array, model);
             }
             if(std::string(node_Name) == "PolygonVertexIndex"){
+                std::cout << "PolygonVertexIndex: " << array.size() / 3 << std::endl;
                 copyTrianglesToModel(array, model);
+            }
+            if(std::string(node_Name) == "UV"){
+                std::cout << "UV: " << array.size() / 2 << std::endl;
+                copyUVToModel(array, model);
+            }
+            if(std::string(node_Name) == "UVIndex"){
+                std::cout << "UVIndex: " << array.size() / 3 << std::endl;
+                copyUVIndexToModel(array, model);
             }
         }
         else{

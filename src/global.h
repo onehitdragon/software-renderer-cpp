@@ -27,6 +27,7 @@ class Model{
 public:
     std::vector<Vec3> vertices;
     std::vector<Triangle> triangles;
+    std::vector<Vec2> uv;
     std::vector<TextureCoor> textureCoors;
     Model();
     Model(int num_vertices, int num_triangles);

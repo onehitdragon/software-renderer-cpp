@@ -25,12 +25,14 @@ int main(){
     init_fixed_number(4);
     createTeapotInstance();
     createCubeInstance();
-    createCrateTexture();
+    // createTexture("assets/crate-texture.jpg");
+    // createTexture("assets/texture_img_1.png");
+    createTexture("assets/Stair/Stair_texture.png");
 
     Model *model = new Model();
     Instance sampleIns = {model};
-    sampleIns.transform = {{0, 0, 4.5}, 0, 1};
-    importFBX("assets/example1.fbx", model);
+    sampleIns.transform = {{0, -1, 4.5}, 0, 1};
+    importFBX("assets/Stair/Stair.fbx", model);
 
     if(!SDL_Init(SDL_INIT_VIDEO)){
         std::cout << "fail SDL_INIT_VIDEO" << std::endl;
@@ -109,7 +111,7 @@ int main(){
         }
 
         // main
-        inst.transform.rotation -= 0.2f;
+        inst.transform.rotation += 0.2f;
         render_instance(inst, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
