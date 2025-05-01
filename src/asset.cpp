@@ -11,7 +11,7 @@ void createTexture(std::string path){
         std::cout << "fail IMG_Load: " << path << std::endl;
         throw std::runtime_error(SDL_GetError());
     }
-    // std::cout << SDL_GetPixelFormatName(surface->format) << std::endl;
+    std::cout << SDL_GetPixelFormatName(surface->format) << std::endl;
     // std::cout << surface->format << std::endl;
     // std::cout << SDL_PIXELFORMAT_RGB24 << std::endl;
 
@@ -26,8 +26,8 @@ void createTexture(std::string path){
             crateTexture_pixels[j + 3] = 255;
         }
         crateTexture_pitch = surface->pitch + surface->w;
-        crateTexture_width = surface->w - 1;
-        crateTexture_height = surface->h - 1;
+        crateTexture_width = surface->w;
+        crateTexture_height = surface->h;
     }
     else if(surface->format == SDL_PIXELFORMAT_ABGR8888){
         // std::ofstream outfile("assets/abc.out");
@@ -51,8 +51,8 @@ void createTexture(std::string path){
             crateTexture_pixels[i] = value[i];
         }
         crateTexture_pitch = surface->pitch;
-        crateTexture_width = surface->w - 1;
-        crateTexture_height = surface->h - 1;
+        crateTexture_width = surface->w;
+        crateTexture_height = surface->h;
     }
     else{
         std::string error = "Unsupported pixel format: ";

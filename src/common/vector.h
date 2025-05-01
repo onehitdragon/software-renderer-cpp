@@ -38,6 +38,7 @@ Vec2 divineVec(const Vec2 &vec, const float &num);
 float scalarCrossVec(const Vec2 &vec1, const Vec2 &vec2);
 int scalarCrossVec(const Vec2Int &vec1, const Vec2Int &vec2);
 float lengthVec(const Vec3 &vec);
+Vec3 normalizeVec(const Vec3 &vec);
 float dot(const Vec3 &vec1, const Vec3 &vec2);
 Vec3 homogeneous3DToCartesian(const Vec3 &vec3);
 void swapVec(Vec3 &vec1, Vec3 &vec2);

@@ -73,6 +73,14 @@ float lengthVec(const Vec3 &vec){
         vec.z * vec.z
     );
 }
+Vec3 normalizeVec(const Vec3 &vec){
+    float length = lengthVec(vec);
+    return {
+        vec.x / length,
+        vec.y / length,
+        vec.z / length,
+    };
+}
 float dot(const Vec3 &vec1, const Vec3 &vec2){
     return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
 }

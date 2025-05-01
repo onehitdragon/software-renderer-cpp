@@ -59,15 +59,48 @@ Vec4 getTexel(
         ),
         _1_over_z
     );
-    
 
-    // std::cout << "(" << textureCoor.uv3.x << ", " << textureCoor.uv3.y << " | " << uv.x << ", " << uv.y << ") ";
+    // std::cout << "(" << " | " << uv.x << ", " << uv.y << ") ";
     uv.x = std::clamp(uv.x, 0.0f, 1.0f);
     uv.y = std::clamp(uv.y, 0.0f, 1.0f);
-    int uv_w = std::floor(crateTexture_width * uv.x);
-    int uv_h = std::floor(crateTexture_height * (1 - uv.y));
+    int uv_w = std::floor((crateTexture_width - 1) * uv.x);
+    int uv_h = std::floor((crateTexture_height - 1) * (1 - uv.y));
     int offset = uv_w * 4 + uv_h * crateTexture_pitch;
     // std::cout << uv.x << ", " << uv.y << " | " << offset << " ";
+    Vec4 texel = {
+        static_cast<float>(crateTexture_pixels[offset]),
+        static_cast<float>(crateTexture_pixels[offset + 1]),
+        static_cast<float>(crateTexture_pixels[offset + 2]),
+        static_cast<float>(crateTexture_pixels[offset + 3]),
+    };
+
+    return texel;
+}
+Vec4 getTexel_repeat(
+    const Vec2 &uv1, const Vec2 &uv12, const Vec2 &uv13,
+    const float &_1_over_z,
+    const float &u, const float &v
+){
+    Vec2 uv =
+    divineVec(
+        addVec(
+            uv1,
+            addVec(
+                scalarVec(u, uv12),
+                scalarVec(v, uv13)
+            )
+        ),
+        _1_over_z
+    );
+
+    // std::cout << "(" << uv.x << ", " << uv.y << ") ";
+    uv.x = uv.x - std::floor(uv.x);
+    uv.y = uv.y - std::floor(uv.y);
+    int uv_w = std::floor(crateTexture_width * uv.x);
+    int uv_h = std::floor(crateTexture_height * uv.y);
+    // std::cout << uv.y << ", " << crateTexture_height << " | " << " ";
+    int offset = uv_w * 4 + uv_h * crateTexture_pitch;
+    // std::cout << uv_w << ", " << uv_h << ", " << crateTexture_height - 1 << " | " << offset << " ";
     Vec4 texel = {
         static_cast<float>(crateTexture_pixels[offset]),
         static_cast<float>(crateTexture_pixels[offset + 1]),
@@ -296,6 +329,8 @@ void drawFilledTriangle(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &text
                             float _1_over_z = interpolate_1_over_z(p1_o, p2_o, p3_o, u, v);
                             // std::cout << u << ", " << v << std::endl;
                             Vec4 color = getTexel(uv1, uv12, uv13, _1_over_z, u, v);
+                            // require fixing
+                            // Vec4 color = getTexel_repeat(uv1, uv12, uv13, _1_over_z, u, v);
 
                             //
                             // putPixel(xi, yi);
@@ -345,6 +380,9 @@ void renderTriangle(
 
 M4x4 m_scale;
 M4x4 m_rotation;
+M4x4 m_rotation_X;
+M4x4 m_rotation_Y;
+M4x4 m_rotation_Z;
 M4x4 m_translation;
 M4x4 m_modeltransform;
 void makeModelTransform(const Transform &transform){
@@ -354,13 +392,29 @@ void makeModelTransform(const Transform &transform){
         0, 0, transform.scale, 0,
         0, 0, 0, 1
     );
-    float rotationRad = transform.rotation * M_PI / 180;
-    m_rotation.init(
-        std::cos(rotationRad), 0, std::sin(rotationRad), 0,
-        0, 1, 0, 0,
-        -(std::sin(rotationRad)), 0, std::cos(rotationRad), 0,
+    float rotationXRad = transform.rotation.x * M_PI / 180;
+    float rotationYRad = transform.rotation.y * M_PI / 180;
+    float rotationZRad = transform.rotation.z * M_PI / 180;
+    m_rotation_X.init(
+        1, 0, 0, 0,
+        0, std::cos(rotationXRad), -std::sin(rotationXRad), 0,
+        0, std::sin(rotationXRad), std::cos(rotationXRad), 0,
         0, 0, 0, 1
     );
+    m_rotation_Y.init(
+        std::cos(rotationYRad), 0, std::sin(rotationYRad), 0,
+        0, 1, 0, 0,
+        -std::sin(rotationYRad), 0, std::cos(rotationYRad), 0,
+        0, 0, 0, 1
+    );
+    m_rotation_Z.init(
+        std::cos(rotationZRad), -std::sin(rotationZRad), 0, 0,
+        std::sin(rotationZRad), std::cos(rotationZRad), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    );
+    avx256_multi_matrix_4x4_4x4(m_rotation_Y.value, m_rotation_X.value, m_rotation.value);
+    avx256_multi_matrix_4x4_4x4(m_rotation.value, m_rotation_Z.value, m_rotation.value);
     m_translation.init(
         1, 0, 0, transform.translation.x,
         0, 1, 0, transform.translation.y,
@@ -380,13 +434,29 @@ void makeCameraTransform(){
         0, 0, 1, -camera.transform.translation.z,
         0, 0, 0, 1
     );
-    float rotationRad = -camera.transform.rotation * M_PI / 180;
-    m_rotation.init(
-        std::cos(rotationRad), 0, std::sin(rotationRad), 0,
-        0, 1, 0, 0,
-        -(std::sin(rotationRad)), 0, std::cos(rotationRad), 0,
+    float rotationXRad = -camera.transform.rotation.x * M_PI / 180;
+    float rotationYRad = -camera.transform.rotation.y * M_PI / 180;
+    float rotationZRad = -camera.transform.rotation.z * M_PI / 180;
+    m_rotation_X.init(
+        1, 0, 0, 0,
+        0, std::cos(rotationXRad), -std::sin(rotationXRad), 0,
+        0, std::sin(rotationXRad), std::cos(rotationXRad), 0,
         0, 0, 0, 1
     );
+    m_rotation_Y.init(
+        std::cos(rotationYRad), 0, std::sin(rotationYRad), 0,
+        0, 1, 0, 0,
+        -std::sin(rotationYRad), 0, std::cos(rotationYRad), 0,
+        0, 0, 0, 1
+    );
+    m_rotation_Z.init(
+        std::cos(rotationZRad), -std::sin(rotationZRad), 0, 0,
+        std::sin(rotationZRad), std::cos(rotationZRad), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    );
+    avx256_multi_matrix_4x4_4x4(m_rotation_Y.value, m_rotation_X.value, m_rotation.value);
+    avx256_multi_matrix_4x4_4x4(m_rotation.value, m_rotation_Z.value, m_rotation.value);
 
     avx256_multi_matrix_4x4_4x4(m_rotation.value, m_translation.value, m_camera.value);
 }
@@ -616,20 +686,24 @@ void project(std::vector<Vec3> &applieds){
     }
 }
 
+void clear_screen(){
+    std::fill_n(canvasBuffer, canvasBufferLength, 255);
+    std::fill_n(deptBuffer, deptBufferLength, -std::numeric_limits<float>::max());
+}
+
 void render_instance(const Instance &instance, int idx){
     std::vector<Vec3> applieds = apply(instance);
 
     ClippingInfo clippingInfo = clipping(applieds, instance);
-    if(clippingInfo.status == ClippingStatus::COMPLETE) return;
+    if(clippingInfo.status == ClippingStatus::COMPLETE){
+        return;
+    }
 
     project(applieds);
-
-    std::fill_n(canvasBuffer, canvasBufferLength, 255);
-    std::fill_n(deptBuffer, deptBufferLength, -std::numeric_limits<float>::max());
     for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
         Triangle triangle = clippingInfo.triangles->at(i);
         TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
-        // if(i == 9){
+        // if(i == idx){
             // renderTriangle(triangle, applieds);
             renderTriangle(triangle, textureCoor, applieds);
         // }

@@ -335,7 +335,7 @@ void readNode(std::ifstream &file, std::ofstream &outfile, Model *model, const i
                 copyVerticesToModel(array, model);
             }
             if(std::string(node_Name) == "PolygonVertexIndex"){
-                std::cout << "PolygonVertexIndex: " << array.size() / 3 << std::endl;
+                std::cout << "PolygonVertexIndex: " << array.size() << " => " << array.size() / 3 << " trigs" << std::endl;
                 copyTrianglesToModel(array, model);
             }
             if(std::string(node_Name) == "UV"){
@@ -343,7 +343,7 @@ void readNode(std::ifstream &file, std::ofstream &outfile, Model *model, const i
                 copyUVToModel(array, model);
             }
             if(std::string(node_Name) == "UVIndex"){
-                std::cout << "UVIndex: " << array.size() / 3 << std::endl;
+                std::cout << "UVIndex: " << array.size() << " => " << array.size() / 3 << " uvs" << std::endl;
                 copyUVIndexToModel(array, model);
             }
         }

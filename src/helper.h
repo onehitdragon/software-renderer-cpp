@@ -18,6 +18,7 @@ public:
     ~ClippingInfo();
 };
 
+void clear_screen();
 void render_instance(const Instance &instance, int idx);
 
 #endif

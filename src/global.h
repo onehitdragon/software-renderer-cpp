@@ -36,10 +36,10 @@ public:
 class Transform{
 public:
     Vec3 translation;
-    float rotation;
+    Vec3 rotation;
     float scale;
     Transform();
-    Transform(Vec3 translation, float rotation, float scale);
+    Transform(Vec3 translation, Vec3 rotation, float scale);
 };
 
 class Instance{

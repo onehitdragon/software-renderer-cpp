@@ -16,14 +16,14 @@ TextureCoor::TextureCoor(){}
 TextureCoor::TextureCoor(Vec2 uv1, Vec2 uv2, Vec2 uv3): uv1(uv1), uv2(uv2), uv3(uv3){}
 
 Transform::Transform(){}
-Transform::Transform(Vec3 translation, float rotation, float scale): translation(translation), rotation(rotation), scale(scale){}
+Transform::Transform(Vec3 translation, Vec3 rotation, float scale): translation(translation), rotation(rotation), scale(scale){}
 
 Instance::Instance(){}
 Instance::Instance(Model *model): model(model){}
 
 Camera::Camera(){}
 Camera::Camera(float distanceToViewport, Transform transform): distanceToViewport(distanceToViewport), transform(transform){}
-Camera camera = {1, Transform(Vec3(0, 0, 0), 0, 0)};
+Camera camera = {1, Transform(Vec3(0, 10, 0), Vec3(90, -20, 0), 0)};
 
 unsigned int canvas_cW = 0;
 unsigned int canvas_cH = 0;
