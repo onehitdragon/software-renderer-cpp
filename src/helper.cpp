@@ -1,16 +1,12 @@
+#include <iostream>
+#include <algorithm>
 #include "helper.h"
 #include "global.h"
 #include "common/matrix.h"
-#include <cmath>
 #include "common/plane.h"
 #include "common/sphere.h"
 #include "common/fixednumber.h"
-#include <math.h>
-#include <string>
-#include <iostream>
-#include <immintrin.h>
 #include "asset.h"
-#include <algorithm>
 
 Vec2 viewportToCanvasCoordinate(const Vec3 &vec3){
     return {
@@ -413,8 +409,8 @@ void makeModelTransform(const Transform &transform){
         0, 0, 1, 0,
         0, 0, 0, 1
     );
-    avx256_multi_matrix_4x4_4x4(m_rotation_Y.value, m_rotation_X.value, m_rotation.value);
-    avx256_multi_matrix_4x4_4x4(m_rotation.value, m_rotation_Z.value, m_rotation.value);
+    avx256_multi_matrix_4x4_4x4(m_rotation_Z.value, m_rotation_Y.value, m_rotation.value);
+    avx256_multi_matrix_4x4_4x4(m_rotation.value, m_rotation_X.value, m_rotation.value);
     m_translation.init(
         1, 0, 0, transform.translation.x,
         0, 1, 0, transform.translation.y,
@@ -455,10 +451,13 @@ void makeCameraTransform(){
         0, 0, 1, 0,
         0, 0, 0, 1
     );
-    avx256_multi_matrix_4x4_4x4(m_rotation_Y.value, m_rotation_X.value, m_rotation.value);
-    avx256_multi_matrix_4x4_4x4(m_rotation.value, m_rotation_Z.value, m_rotation.value);
+    avx256_multi_matrix_4x4_4x4(m_rotation_Z.value, m_rotation_Y.value, m_rotation.value);
+    avx256_multi_matrix_4x4_4x4(m_rotation.value, m_rotation_X.value, m_rotation.value);
 
     avx256_multi_matrix_4x4_4x4(m_rotation.value, m_translation.value, m_camera.value);
+}
+void makeCameraTransform2(const BaseCamera &currentCamera){
+    currentCamera.getViewMatrix(m_camera);
 }
 
 unsigned int clippingPlaneLength = 5;
@@ -632,9 +631,9 @@ ClippingInfo clipping(
 M4x4 m_cameramodel;
 M4x1 m4x1_cache_0;
 M4x1 m4x1_cache_1;
-std::vector<Vec3> apply(const Instance &instance){
+std::vector<Vec3> apply(const Instance &instance, const BaseCamera &currentCamera){
     makeModelTransform(instance.transform);
-    makeCameraTransform();
+    makeCameraTransform2(currentCamera);
     avx256_multi_matrix_4x4_4x4(
         m_camera.value,
         m_modeltransform.value,
@@ -691,8 +690,8 @@ void clear_screen(){
     std::fill_n(deptBuffer, deptBufferLength, -std::numeric_limits<float>::max());
 }
 
-void render_instance(const Instance &instance, int idx){
-    std::vector<Vec3> applieds = apply(instance);
+void render_instance(const Instance &instance, const BaseCamera &currentCamera, int idx){
+    std::vector<Vec3> applieds = apply(instance, currentCamera);
 
     ClippingInfo clippingInfo = clipping(applieds, instance);
     if(clippingInfo.status == ClippingStatus::COMPLETE){

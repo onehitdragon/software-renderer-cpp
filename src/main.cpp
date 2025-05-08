@@ -1,4 +1,3 @@
-#include <string>
 #include <iostream>
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -7,9 +6,8 @@
 #include "helper.h"
 #include "asset.h"
 #include "importer/fbximporter.h"
-#include <cmath>
-#include <math.h>
-#include <algorithm>
+#include "common/mytime.h"
+#include "common/camera.h"
 
 const int WINDOW_WIDTH = 500;
 const int WINDOW_HEIGHT = 500;
@@ -23,35 +21,8 @@ void initPixels(){
     }
 }
 
-// orbit camera
-Vec3 target = {0, 0, 0};
-float radius = 10;
-float azimuthalAngle = 0;
-float polarAngle = 0;
-
-void updateCamera(const Vec2 &mouseDir, Instance &instance){
-    // azimuthalAngle += 0.1 * (mouseDir.x * -1);
-    polarAngle += 0.1 * (mouseDir.y * -1);
-    
-    Vec3 cameraPos;
-    float azimuthalRad = azimuthalAngle * M_PI / 180;
-    float polarRad = polarAngle * M_PI / 180;
-    cameraPos.x = radius * std::cos(azimuthalRad) * std::sin(polarRad);
-    cameraPos.z = radius * std::sin(azimuthalRad) * std::sin(polarRad);
-    cameraPos.y = radius * std::cos(polarRad);
-    std::cout << vecToString(cameraPos) << std::endl;
-
-    Vec3 targetPos = normalizeVec(subVec(target, cameraPos));
-    float lookat_AroundY = std::atan2(targetPos.x, targetPos.z) * 180 / M_PI;
-    float lookat_AroundX = -std::asin(targetPos.y) * 180 / M_PI;
-
-    camera.transform.translation = cameraPos;
-    camera.transform.rotation.y = lookat_AroundY;
-    camera.transform.rotation.x = lookat_AroundX;
-
-    std::cout << lookat_AroundY << " " << lookat_AroundX << std::endl;
-    // std::cout << targetPos.y << " " << targetPos.z << " " << std::atan2(targetPos.y, targetPos.z) << std::endl;
-}
+// fps camera
+FPSCamera fpsCamera;
 
 int main(){
     init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 2, 2);
@@ -111,6 +82,7 @@ int main(){
         std::cout << SDL_GetError() << std::endl;
         return 1;
     }
+    SDL_SetWindowRelativeMouseMode(window, true);
 
     // loop
     bool loop = true;
@@ -119,94 +91,101 @@ int main(){
     Uint64 startTime = SDL_GetTicks();
     Instance inst = std::ref(importIns);
     int idx = 0;
-    float mouseX_old = 0, mouseY_old = 0;
+    // float mouseX_old = 0, mouseY_old = 0;
+    bool startExit = false;
+    float timeToExit = 1;
+    int totalZeroVector = 0;
+    int totalNonZeroVector = 0;
+    std::ofstream outfile("src/main.out2.log");
     
     while(loop){
-        SDL_Event event;
-        while(SDL_PollEvent(&event)){
-            if(event.type == SDL_EVENT_QUIT){
-                loop = false;
-            }
-            if(event.type == SDL_EVENT_KEY_DOWN){
-                idx++;
-            }
-            if(event.type == SDL_EVENT_KEY_DOWN){
-                if(event.key.key == SDLK_LEFT){
-                    inst.transform.translation.x -= 0.1f;
-                }
-                if(event.key.key == SDLK_RIGHT){
-                    inst.transform.translation.x += 0.1f;
-                }
-                if(event.key.key == SDLK_UP){
-                    inst.transform.translation.y += 0.1f;
-                }
-                if(event.key.key == SDLK_DOWN){
-                    inst.transform.translation.y -= 0.1f;
-                }
-                if(event.key.key == SDLK_PAGEUP){
-                    inst.transform.translation.z += 0.1f;
-                }
-                if(event.key.key == SDLK_PAGEDOWN){
-                    inst.transform.translation.z -= 0.1f;
-                }
-                if(event.key.key == SDLK_SPACE){
-                    // polarAngle += 1;
-                    // updateCamera(inst);
-                    inst.transform.rotation.y += 1;
-                }
-                if(event.key.key == SDLK_BACKSPACE){
-                    // polarAngle += 1;
-                    // updateCamera(inst);
-                    inst.transform.rotation.x += 1;
-                }
+        MyTime::calcDeltaTime();
+        SDL_PumpEvents();
+        Vec2 mouseDir;
+        SDL_GetRelativeMouseState(&mouseDir.x, &mouseDir.y);
+        mouseDir.y = -mouseDir.y;
+        fpsCamera.update(mouseDir, MyTime::deltaTime);
 
-                if(event.key.key == SDLK_A){
-                    camera.transform.translation.x -= 0.1f;
-                }
-                if(event.key.key == SDLK_D){
-                    camera.transform.translation.x += 0.1f;
-                }
-                if(event.key.key == SDLK_W){
-                    camera.transform.translation.y += 0.1f;
-                }
-                if(event.key.key == SDLK_S){
-                    camera.transform.translation.y -= 0.1f;
-                }
-                if(event.key.key == SDLK_Q){
-                    camera.transform.translation.z += 0.1f;
-                }
-                if(event.key.key == SDLK_E){
-                    camera.transform.translation.z -= 0.1f;
-                }
-                if(event.key.key == SDLK_F){
-                    camera.transform.rotation.y += 0.1f;
-                }
-            }
-            if(event.type == SDL_EVENT_MOUSE_WHEEL){
-                radius = std::max(0.0f, radius - 0.1f * event.wheel.y);
-                // std::cout << radius << std::endl;
-                // updateCamera({0, 0}, inst);
-            }
-        }
+        // if(mouseDir.x != 0 || mouseDir.y != 0){
+        //     startExit = true;
+        // }
+        // if(startExit){
+        //     outfile << mouseDir.x << " " << mouseDir.y << std::endl;
+        //     if(mouseDir.x != 0 || mouseDir.y != 0){
+        //         totalNonZeroVector++;
+        //     }
+        //     else{
+        //         totalZeroVector++;
+        //     }
 
-        float mouseX_new, mouseY_new;
-        SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouseX_new, &mouseY_new);
-        Vec2 mouseDir = {mouseX_new - mouseX_old, mouseY_new - mouseY_old};
-        mouseX_old = mouseX_new;
-        mouseY_old = mouseY_new;
-        const bool *keystates = SDL_GetKeyboardState(NULL);
-        if(keystates[SDL_SCANCODE_LALT] && keystates[SDL_SCANCODE_LSHIFT] && buttons == SDL_BUTTON_LEFT){
-            camera.transform.translation.x += 0.1 * (mouseDir.x * -1);
-            camera.transform.translation.y += 0.1 * mouseDir.y;
-        }
-        if(keystates[SDL_SCANCODE_LALT] && !keystates[SDL_SCANCODE_LSHIFT] && buttons == SDL_BUTTON_LEFT){
-            updateCamera(mouseDir, inst);
-        }
+        //     timeToExit -= MyTime::deltaTime;
+        // }
+        // if(timeToExit <= 0){
+        //     outfile << "total NonZeroVector: " << totalNonZeroVector << std::endl;
+        //     outfile << "total totalZeroVector: " << totalZeroVector << std::endl;
+
+        //     loop = false;
+        // }
+
+        // while(SDL_PollEvent(&event)){
+        //     if(event.type == SDL_EVENT_MOUSE_MOTION){
+        //         Vec2 mouseDir = {event.motion.xrel, -event.motion.yrel};
+        //         fpsCamera.update(mouseDir, MyTime::deltaTime);
+        //         // std::cout << mouseDir.x << " " << mouseDir.y << std::endl;
+        //     }
+        //     if(event.type == SDL_EVENT_QUIT){
+        //         loop = false;
+        //     }
+        //     if(event.type == SDL_EVENT_KEY_DOWN){
+        //         idx++;
+        //     }
+        //     if(event.type == SDL_EVENT_KEY_DOWN){
+        //         if(event.key.key == SDLK_LEFT){
+        //             inst.transform.translation.x -= 0.1f;
+        //         }
+        //         if(event.key.key == SDLK_RIGHT){
+        //             inst.transform.translation.x += 0.1f;
+        //         }
+        //         if(event.key.key == SDLK_UP){
+        //             inst.transform.translation.y += 0.1f;
+        //         }
+        //         if(event.key.key == SDLK_DOWN){
+        //             inst.transform.translation.y -= 0.1f;
+        //         }
+        //         if(event.key.key == SDLK_PAGEUP){
+        //             inst.transform.translation.z += 0.1f;
+        //         }
+        //         if(event.key.key == SDLK_PAGEDOWN){
+        //             inst.transform.translation.z -= 0.1f;
+        //         }
+        //         if(event.key.key == SDLK_SPACE){
+        //             inst.transform.rotation.y += 1;
+        //         }
+        //         if(event.key.key == SDLK_BACKSPACE){
+        //             inst.transform.rotation.x += 1;
+        //         }
+        //     }
+        // }
+        
+        // float speed = 5 * MyTime::deltaTime;
+        // const bool *keystates = SDL_GetKeyboardState(NULL);
+        // if(keystates[SDL_SCANCODE_W]){
+        //     fpsCamera.position = fpsCamera.position + fpsCamera.forward * speed;
+        // }
+        // if(keystates[SDL_SCANCODE_S]){
+        //     fpsCamera.position = fpsCamera.position - fpsCamera.forward * speed;
+        // }
+        // if(keystates[SDL_SCANCODE_D]){
+        //     fpsCamera.position = fpsCamera.position + fpsCamera.right * speed;
+        // }
+        // if(keystates[SDL_SCANCODE_A]){
+        //     fpsCamera.position = fpsCamera.position - fpsCamera.right * speed;
+        // }
 
         // main
         clear_screen();
-        // inst.transform.rotation.y += 0.2f;
-        render_instance(inst, idx);
+        // inst.transform.rotation.y += 100.0f * MyTime::deltaTime;
+        render_instance(inst, fpsCamera, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
 
@@ -219,6 +198,7 @@ int main(){
         else{
             fps++;
         }
+
         SDL_Surface *textSurface = TTF_RenderText_Solid(font, fpsText.c_str(), fpsText.length(), {0, 255, 0, 255});
         SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
         SDL_FRect textFRect = {0, 0, (float)textSurface->w, (float)textSurface->h};

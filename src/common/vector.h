@@ -18,6 +18,9 @@ public:
     float z;
     Vec3();
     Vec3(float x, float y, float z);
+    Vec3 operator+(const Vec3 &other) const;
+    Vec3 operator-(const Vec3 &other) const;
+    Vec3 operator*(const float &number) const;
 };
 
 class Vec4: public Vec3{
@@ -37,8 +40,11 @@ Vec2 scalarVec(const float &scalar, const Vec2 &vec);
 Vec2 divineVec(const Vec2 &vec, const float &num);
 float scalarCrossVec(const Vec2 &vec1, const Vec2 &vec2);
 int scalarCrossVec(const Vec2Int &vec1, const Vec2Int &vec2);
+Vec3 crossVec(const Vec3 &vec1, const Vec3 &vec2);
 float lengthVec(const Vec3 &vec);
+float lengthVec(const Vec2 &vec);
 Vec3 normalizeVec(const Vec3 &vec);
+Vec2 normalizeVec(const Vec2 &vec);
 float dot(const Vec3 &vec1, const Vec3 &vec2);
 Vec3 homogeneous3DToCartesian(const Vec3 &vec3);
 void swapVec(Vec3 &vec1, Vec3 &vec2);

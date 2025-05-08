@@ -5,6 +5,27 @@ Vec2::Vec2(float x, float y): x(x), y(y){}
 
 Vec3::Vec3(): z(0){}
 Vec3::Vec3(float x, float y, float z): Vec2(x, y), z(z){}
+Vec3 Vec3::operator+(const Vec3 &other) const{
+    return {
+        x + other.x,
+        y + other.y,
+        z + other.z
+    };
+}
+Vec3 Vec3::operator-(const Vec3 &other) const{
+    return {
+        x - other.x,
+        y - other.y,
+        z - other.z
+    };
+}
+Vec3 Vec3::operator*(const float &number) const{
+    return {
+        x * number,
+        y * number,
+        z * number
+    };
+}
 
 Vec4::Vec4(): w(0){}
 Vec4::Vec4(float x, float y, float z, float w): Vec3(x, y, z), w(w){};
@@ -66,11 +87,24 @@ float scalarCrossVec(const Vec2 &vec1, const Vec2 &vec2){
 int scalarCrossVec(const Vec2Int &vec1, const Vec2Int &vec2){
     return (vec1.x * vec2.y) - (vec1.y * vec2.x);
 }
+Vec3 crossVec(const Vec3 &vec1, const Vec3 &vec2){
+    return {
+        vec1.y * vec2.z - vec1.z * vec2.y,
+        vec1.z * vec2.x - vec1.x * vec2.z,
+        vec1.x * vec2.y - vec1.y * vec2.x,
+    };
+}
 float lengthVec(const Vec3 &vec){
     return std::sqrt(
         vec.x * vec.x +
         vec.y * vec.y +
         vec.z * vec.z
+    );
+}
+float lengthVec(const Vec2 &vec){
+    return std::sqrt(
+        vec.x * vec.x +
+        vec.y * vec.y
     );
 }
 Vec3 normalizeVec(const Vec3 &vec){
@@ -79,6 +113,19 @@ Vec3 normalizeVec(const Vec3 &vec){
         vec.x / length,
         vec.y / length,
         vec.z / length,
+    };
+}
+Vec2 normalizeVec(const Vec2 &vec){
+    float length = lengthVec(vec);
+    if(length == 0){
+        return {
+            vec.x,
+            vec.y
+        };
+    }
+    return {
+        vec.x / length,
+        vec.y / length
     };
 }
 float dot(const Vec3 &vec1, const Vec3 &vec2){
