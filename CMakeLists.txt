@@ -26,7 +26,7 @@ find_package(ZLIB REQUIRED)
 
 file(GLOB SOURCES "src/*.cpp" "src/common/*.cpp" "src/importer/*.cpp")
 add_executable(cgcpp ${SOURCES})
-target_compile_options(cgcpp PRIVATE -march=native -O0)
+target_compile_options(cgcpp PRIVATE -march=native -O3)
 
 target_link_libraries(cgcpp PRIVATE
     SDL3_image::SDL3_image

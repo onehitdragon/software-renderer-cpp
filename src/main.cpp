@@ -83,6 +83,7 @@ int main(){
         return 1;
     }
     SDL_SetWindowRelativeMouseMode(window, true);
+    SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
 
     // loop
     bool loop = true;
@@ -98,89 +99,63 @@ int main(){
     int totalNonZeroVector = 0;
     std::ofstream outfile("src/main.out2.log");
     
+    SDL_Event event;
     while(loop){
         MyTime::calcDeltaTime();
-        SDL_PumpEvents();
+        while(SDL_PollEvent(&event)){
+            if(event.type == SDL_EVENT_QUIT){
+                loop = false;
+            }
+            if(event.type == SDL_EVENT_KEY_DOWN){
+                idx++;
+            }
+            if(event.type == SDL_EVENT_KEY_DOWN){
+                if(event.key.key == SDLK_LEFT){
+                    inst.transform.translation.x -= 0.1f;
+                }
+                if(event.key.key == SDLK_RIGHT){
+                    inst.transform.translation.x += 0.1f;
+                }
+                if(event.key.key == SDLK_UP){
+                    inst.transform.translation.y += 0.1f;
+                }
+                if(event.key.key == SDLK_DOWN){
+                    inst.transform.translation.y -= 0.1f;
+                }
+                if(event.key.key == SDLK_PAGEUP){
+                    inst.transform.translation.z += 0.1f;
+                }
+                if(event.key.key == SDLK_PAGEDOWN){
+                    inst.transform.translation.z -= 0.1f;
+                }
+                if(event.key.key == SDLK_SPACE){
+                    inst.transform.rotation.y += 1;
+                }
+                if(event.key.key == SDLK_BACKSPACE){
+                    inst.transform.rotation.x += 1;
+                }
+            }
+        }
+
+        float speed = 5 * MyTime::deltaTime;
+        const bool *keystates = SDL_GetKeyboardState(NULL);
+        if(keystates[SDL_SCANCODE_W]){
+            fpsCamera.position = fpsCamera.position + fpsCamera.forward * speed;
+        }
+        if(keystates[SDL_SCANCODE_S]){
+            fpsCamera.position = fpsCamera.position - fpsCamera.forward * speed;
+        }
+        if(keystates[SDL_SCANCODE_D]){
+            fpsCamera.position = fpsCamera.position + fpsCamera.right * speed;
+        }
+        if(keystates[SDL_SCANCODE_A]){
+            fpsCamera.position = fpsCamera.position - fpsCamera.right * speed;
+        }
+
         Vec2 mouseDir;
         SDL_GetRelativeMouseState(&mouseDir.x, &mouseDir.y);
         mouseDir.y = -mouseDir.y;
-        fpsCamera.update(mouseDir, MyTime::deltaTime);
-
-        // if(mouseDir.x != 0 || mouseDir.y != 0){
-        //     startExit = true;
-        // }
-        // if(startExit){
-        //     outfile << mouseDir.x << " " << mouseDir.y << std::endl;
-        //     if(mouseDir.x != 0 || mouseDir.y != 0){
-        //         totalNonZeroVector++;
-        //     }
-        //     else{
-        //         totalZeroVector++;
-        //     }
-
-        //     timeToExit -= MyTime::deltaTime;
-        // }
-        // if(timeToExit <= 0){
-        //     outfile << "total NonZeroVector: " << totalNonZeroVector << std::endl;
-        //     outfile << "total totalZeroVector: " << totalZeroVector << std::endl;
-
-        //     loop = false;
-        // }
-
-        // while(SDL_PollEvent(&event)){
-        //     if(event.type == SDL_EVENT_MOUSE_MOTION){
-        //         Vec2 mouseDir = {event.motion.xrel, -event.motion.yrel};
-        //         fpsCamera.update(mouseDir, MyTime::deltaTime);
-        //         // std::cout << mouseDir.x << " " << mouseDir.y << std::endl;
-        //     }
-        //     if(event.type == SDL_EVENT_QUIT){
-        //         loop = false;
-        //     }
-        //     if(event.type == SDL_EVENT_KEY_DOWN){
-        //         idx++;
-        //     }
-        //     if(event.type == SDL_EVENT_KEY_DOWN){
-        //         if(event.key.key == SDLK_LEFT){
-        //             inst.transform.translation.x -= 0.1f;
-        //         }
-        //         if(event.key.key == SDLK_RIGHT){
-        //             inst.transform.translation.x += 0.1f;
-        //         }
-        //         if(event.key.key == SDLK_UP){
-        //             inst.transform.translation.y += 0.1f;
-        //         }
-        //         if(event.key.key == SDLK_DOWN){
-        //             inst.transform.translation.y -= 0.1f;
-        //         }
-        //         if(event.key.key == SDLK_PAGEUP){
-        //             inst.transform.translation.z += 0.1f;
-        //         }
-        //         if(event.key.key == SDLK_PAGEDOWN){
-        //             inst.transform.translation.z -= 0.1f;
-        //         }
-        //         if(event.key.key == SDLK_SPACE){
-        //             inst.transform.rotation.y += 1;
-        //         }
-        //         if(event.key.key == SDLK_BACKSPACE){
-        //             inst.transform.rotation.x += 1;
-        //         }
-        //     }
-        // }
-        
-        // float speed = 5 * MyTime::deltaTime;
-        // const bool *keystates = SDL_GetKeyboardState(NULL);
-        // if(keystates[SDL_SCANCODE_W]){
-        //     fpsCamera.position = fpsCamera.position + fpsCamera.forward * speed;
-        // }
-        // if(keystates[SDL_SCANCODE_S]){
-        //     fpsCamera.position = fpsCamera.position - fpsCamera.forward * speed;
-        // }
-        // if(keystates[SDL_SCANCODE_D]){
-        //     fpsCamera.position = fpsCamera.position + fpsCamera.right * speed;
-        // }
-        // if(keystates[SDL_SCANCODE_A]){
-        //     fpsCamera.position = fpsCamera.position - fpsCamera.right * speed;
-        // }
+        fpsCamera.update(mouseDir);
 
         // main
         clear_screen();

@@ -62,6 +62,14 @@
         "fstream": "cpp",
         "*.rh": "cpp",
         "climits": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "codecvt": "cpp",
+        "condition_variable": "cpp",
+        "cstring": "cpp",
+        "map": "cpp",
+        "unordered_set": "cpp",
+        "mutex": "cpp",
+        "list": "cpp",
+        "bitset": "cpp"
     }
 }

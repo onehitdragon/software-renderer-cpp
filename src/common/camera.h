@@ -19,7 +19,7 @@ public:
     Vec3 right;
     Vec3 up;
     FPSCamera();
-    void update(const Vec2 &mouseDir, const float &deltaTime);
+    void update(const Vec2 &mouseDir);
     void getViewMatrix(M4x4 &viewMatrix) const override;
 };
 
