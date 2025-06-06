@@ -109,6 +109,7 @@ float lengthVec(const Vec2 &vec){
 }
 Vec3 normalizeVec(const Vec3 &vec){
     float length = lengthVec(vec);
+    if(length == 0) length = 1;
     return {
         vec.x / length,
         vec.y / length,

@@ -8,9 +8,12 @@
 #include "importer/fbximporter.h"
 #include "common/mytime.h"
 #include "common/camera.h"
+#include "common/quaternion.h"
 
 const int WINDOW_WIDTH = 500;
 const int WINDOW_HEIGHT = 500;
+const int WINDOW_WIDTH_HALF = 250;
+const int WINDOW_HEIGHT_HALF = 250;
 
 void initPixels(){
     for(int i = 0; i < canvasBufferLength; i += 4){
@@ -23,25 +26,27 @@ void initPixels(){
 
 // fps camera
 FPSCamera fpsCamera;
+ArcballCamera arcballCamera;
+TrackballCamera trackballCamera;
 
 int main(){
     init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 2, 2);
     init_fixed_number(4);
     createTeapotInstance();
     createCubeInstance();
-    createTexture("assets/Test/Cube_texture.png");
+    // createTexture("assets/Test2/test.png");
     // createTexture("assets/crate-texture.jpg");
     // createTexture("assets/texture_img_1.png");
     // createTexture("assets/Stair/Stair_texture.png");
-    // createTexture("assets/House/Texturelabs_Brick_163S.jpg");
+    createTexture("assets/House/Texturelabs_Brick_163S.jpg");
 
     Model *model = new Model();
     Instance importIns = {model};
     importIns.transform = {{0, 0, 0}, {0, 0, 0}, 1};
-    importFBX("assets/Test/example1.fbx", model);
+    // importFBX("assets/Test2/test2.fbx", model);
     // importFBX("assets/example1.fbx", model);
-    // importFBX("assets/House/House.fbx", model);
     // importFBX("assets/Stair/Stair.fbx", model);
+    importFBX("assets/House/House.fbx", model);
 
     // return 0;
 
@@ -82,8 +87,8 @@ int main(){
         std::cout << SDL_GetError() << std::endl;
         return 1;
     }
-    SDL_SetWindowRelativeMouseMode(window, true);
-    SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
+    // SDL_SetWindowRelativeMouseMode(window, true);
+    // SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0");
 
     // loop
     bool loop = true;
@@ -92,12 +97,9 @@ int main(){
     Uint64 startTime = SDL_GetTicks();
     Instance inst = std::ref(importIns);
     int idx = 0;
+    bool pressed = false;
+    bool enableX = false, enableY = false;
     // float mouseX_old = 0, mouseY_old = 0;
-    bool startExit = false;
-    float timeToExit = 1;
-    int totalZeroVector = 0;
-    int totalNonZeroVector = 0;
-    std::ofstream outfile("src/main.out2.log");
     
     SDL_Event event;
     while(loop){
@@ -134,6 +136,54 @@ int main(){
                 if(event.key.key == SDLK_BACKSPACE){
                     inst.transform.rotation.x += 1;
                 }
+                if(event.key.key == SDLK_Q){
+                    enableX = !enableX;
+                    std::cout << "enableX: " << enableX << std::endl;
+                }
+                if(event.key.key == SDLK_E){
+                    enableY = !enableY;
+                    std::cout << "enableY: " << enableY << std::endl;
+                }
+            }
+
+            // Vec2 ndcMouse;
+            // SDL_GetMouseState(&ndcMouse.x, &ndcMouse.y);
+            // ndcMouse.x = (ndcMouse.x - WINDOW_WIDTH_HALF) / WINDOW_WIDTH_HALF;
+            // ndcMouse.y = (ndcMouse.y - WINDOW_HEIGHT_HALF) / WINDOW_HEIGHT_HALF * -1;
+            // if(!enableX){
+            //     ndcMouse.x = 0;
+            // }
+            // if(!enableY){
+            //     ndcMouse.y = 0;
+            // }
+            // if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
+            //     pressed = true;
+            //     arcballCamera.press(ndcMouse);
+            // }
+            // if(event.type == SDL_EVENT_MOUSE_BUTTON_UP){
+            //     pressed = false;
+            // }
+            // if(event.type == SDL_EVENT_MOUSE_MOTION && pressed){
+            //     arcballCamera.move(ndcMouse);
+            // }
+
+            Vec2 mouseDir;
+            SDL_GetRelativeMouseState(&mouseDir.x, &mouseDir.y);
+            mouseDir.y = -mouseDir.y;
+            if(!enableX){
+                mouseDir.x = 0;
+            }
+            if(!enableY){
+                mouseDir.y = 0;
+            }
+            if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
+                pressed = true;
+            }
+            if(event.type == SDL_EVENT_MOUSE_BUTTON_UP){
+                pressed = false;
+            }
+            if(event.type == SDL_EVENT_MOUSE_MOTION && pressed){
+                trackballCamera.move(mouseDir);
             }
         }
 
@@ -152,15 +202,10 @@ int main(){
             fpsCamera.position = fpsCamera.position - fpsCamera.right * speed;
         }
 
-        Vec2 mouseDir;
-        SDL_GetRelativeMouseState(&mouseDir.x, &mouseDir.y);
-        mouseDir.y = -mouseDir.y;
-        fpsCamera.update(mouseDir);
-
         // main
         clear_screen();
         // inst.transform.rotation.y += 100.0f * MyTime::deltaTime;
-        render_instance(inst, fpsCamera, idx);
+        render_instance(inst, trackballCamera, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
 

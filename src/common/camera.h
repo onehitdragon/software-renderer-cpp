@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "matrix.h"
+#include "quaternion.h"
 
 class BaseCamera{
 public:
@@ -20,6 +21,32 @@ public:
     Vec3 up;
     FPSCamera();
     void update(const Vec2 &mouseDir);
+    void getViewMatrix(M4x4 &viewMatrix) const override;
+};
+
+class ArcballCamera: public BaseCamera{
+public:
+    float radius;
+    Quaternion rotated;
+    Quaternion rotatedInverse;
+    Vec2 prevNdcMouse;
+    ArcballCamera();
+    void press(Vec2 ndcMouse);
+    void move(Vec2 ndcMouse);
+    void release();
+    void getViewMatrix(M4x4 &viewMatrix) const override;
+};
+
+class TrackballCamera: public BaseCamera{
+public:
+    float radius;
+    float yaw;
+    float pitch;
+    float speed;
+    Quaternion rotated;
+    Quaternion rotatedInverse;
+    TrackballCamera();
+    void move(Vec2 mouse);
     void getViewMatrix(M4x4 &viewMatrix) const override;
 };
 
