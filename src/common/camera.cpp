@@ -82,27 +82,44 @@ void ArcballCamera::getViewMatrix(M4x4 &viewMatrix) const {
     avx256_multi_matrix_4x4_4x4(translateMatrix.value, rotationMatrix.value, viewMatrix.value);
 }
 
+// TrackballCamera
 TrackballCamera::TrackballCamera(){
     radius = 5;
     yaw = 0;
     pitch = 0;
     speed = 0.5f;
+    panningSpeed = 0.01f;
+    center = {2, 0, 0};
+    rotated = Quaternion(1, 0, 0, 0);
+    rotatedInverse = Quaternion(1, 0, 0, 0);
+    localPosition = {0, 0, -radius};
+    position = center + rotated.rotate(localPosition);
 }
 void TrackballCamera::move(Vec2 mouse){
     yaw += mouse.x * speed;
     pitch += mouse.y * -speed;
     Quaternion q_yaw = Quaternion(yaw * M_PI / 180, {0, 1, 0});
     Quaternion q_pitch = Quaternion(pitch * M_PI / 180, {1, 0, 0});
-    rotated = q_pitch * q_yaw;
+    rotated = q_yaw * q_pitch;
     rotatedInverse = q_pitch.getInverse() * q_yaw.getInverse();
+    position = center + rotated.rotate(localPosition);
 }
 void TrackballCamera::getViewMatrix(M4x4 &viewMatrix) const {
     translateMatrix.init(
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, radius,
+        1, 0, 0, -position.x,
+        0, 1, 0, -position.y,
+        0, 0, 1, -position.z,
         0, 0, 0, 1
     );
     rotatedInverse.getRotateMatrix(rotationMatrix);
-    avx256_multi_matrix_4x4_4x4(translateMatrix.value, rotationMatrix.value, viewMatrix.value);
+    avx256_multi_matrix_4x4_4x4(rotationMatrix.value, translateMatrix.value, viewMatrix.value);
+}
+M4x4 rotationMatrix2;
+void TrackballCamera::pan(Vec2 mouse){
+    rotated.getRotateMatrix(rotationMatrix2);
+    Vec3 right = rotationMatrix2.getColumn(0);
+    Vec3 up = rotationMatrix2.getColumn(1);
+    center = center + right * mouse.x * -panningSpeed;
+    center = center + up * mouse.y * -panningSpeed;
+    position = center + rotated.rotate(localPosition);
 }

@@ -1,6 +1,7 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
 
+#include <iostream>
 #include "vector.h"
 #include "matrix.h"
 
@@ -18,7 +19,7 @@ public:
     Quaternion(float angle, Vec3 unit);
     Quaternion operator*(const Quaternion &other) const;
     Quaternion operator*(const Vec3 &p) const;
-    Quaternion rotate(const Vec3 &p) const;
+    Vec3 rotate(const Vec3 &p) const;
     float calcNorm() const;
     Quaternion getConjugate() const;
     Quaternion getInverse() const;

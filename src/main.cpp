@@ -28,25 +28,26 @@ void initPixels(){
 FPSCamera fpsCamera;
 ArcballCamera arcballCamera;
 TrackballCamera trackballCamera;
+M4x4 m;
 
 int main(){
     init_canvas_buffer(WINDOW_WIDTH, WINDOW_HEIGHT, 2, 2);
     init_fixed_number(4);
     createTeapotInstance();
     createCubeInstance();
-    // createTexture("assets/Test2/test.png");
+    createTexture("assets/Test2/test.png");
     // createTexture("assets/crate-texture.jpg");
     // createTexture("assets/texture_img_1.png");
     // createTexture("assets/Stair/Stair_texture.png");
-    createTexture("assets/House/Texturelabs_Brick_163S.jpg");
+    // createTexture("assets/House/Texturelabs_Brick_163S.jpg");
 
     Model *model = new Model();
     Instance importIns = {model};
     importIns.transform = {{0, 0, 0}, {0, 0, 0}, 1};
-    // importFBX("assets/Test2/test2.fbx", model);
+    importFBX("assets/Test2/test2.fbx", model);
     // importFBX("assets/example1.fbx", model);
     // importFBX("assets/Stair/Stair.fbx", model);
-    importFBX("assets/House/House.fbx", model);
+    // importFBX("assets/House/House.fbx", model);
 
     // return 0;
 
@@ -105,6 +106,8 @@ int main(){
     while(loop){
         MyTime::calcDeltaTime();
         while(SDL_PollEvent(&event)){
+            SDL_Keymod mod = SDL_GetModState();
+
             if(event.type == SDL_EVENT_QUIT){
                 loop = false;
             }
@@ -183,7 +186,12 @@ int main(){
                 pressed = false;
             }
             if(event.type == SDL_EVENT_MOUSE_MOTION && pressed){
-                trackballCamera.move(mouseDir);
+                if((mod & SDL_KMOD_ALT) && !(mod & SDL_KMOD_LSHIFT)){
+                    trackballCamera.move(mouseDir);
+                }
+                if((mod & SDL_KMOD_LSHIFT) && (mod & SDL_KMOD_ALT)){
+                    trackballCamera.pan(mouseDir);
+                }
             }
         }
 

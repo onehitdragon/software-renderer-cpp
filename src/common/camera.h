@@ -43,11 +43,16 @@ public:
     float yaw;
     float pitch;
     float speed;
+    float panningSpeed;
+    Vec3 center;
+    Vec3 localPosition;
+    Vec3 position;
     Quaternion rotated;
     Quaternion rotatedInverse;
     TrackballCamera();
     void move(Vec2 mouse);
     void getViewMatrix(M4x4 &viewMatrix) const override;
+    void pan(Vec2 mouse);
 };
 
 #endif

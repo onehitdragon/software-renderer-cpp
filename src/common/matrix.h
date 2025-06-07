@@ -67,6 +67,8 @@ public:
     );
     int getM() const override;
     int getN() const override;
+    Vec4 getRow(int index) const;
+    Vec4 getColumn(int index) const;
 };
 
 class M3x4: public Matrix{

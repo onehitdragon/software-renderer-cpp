@@ -112,6 +112,13 @@ void M4x4::init(
 }
 int M4x4::getM() const{ return 4; }
 int M4x4::getN() const{ return 4; }
+Vec4 M4x4::getRow(int index) const {
+    index *= 4;
+    return Vec4(value[index], value[index + 1], value[index + 2], value[index + 3]);
+}
+Vec4 M4x4::getColumn(int index) const {
+    return Vec4(value[index + 0], value[index + 4], value[index + 8], value[index + 12]);
+}
 
 M3x4::M3x4(){
     value = static_cast<float*>(_aligned_malloc(12 * sizeof(float), 32));

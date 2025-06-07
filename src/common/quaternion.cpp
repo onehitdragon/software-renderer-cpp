@@ -47,13 +47,13 @@ Quaternion Quaternion::operator*(const Vec3 &p) const{
 
     return *(this) * pure;
 }
-Quaternion Quaternion::rotate(const Vec3 &p) const{
+Vec3 Quaternion::rotate(const Vec3 &p) const{
     Quaternion inv;
     inv.w = w;
     inv.setV(getV() * -1);
     Quaternion q = *(this) * p * inv;
 
-    return q;
+    return q.getV();
 }
 float Quaternion::calcNorm() const{
     return sqrt(w*w + x*x + y*y + z*z);
@@ -90,4 +90,10 @@ void Quaternion::getRotateMatrix(M4x4 &matrix) const{
         2*(x*z - w*y), 2*(y*z + w*x), 1 - 2*(x*x + y*y), 0,
         0, 0, 0, 1
     );
+    // matrix.init(
+    //     1 - 2*(y*y + z*z), 2*(x*y + w*z), 2*(x*z - w*y), 0,
+    //     2*(x*y - w*z), 1 - 2*(x*x + z*z), 2*(y*z + w*x), 0,
+    //     2*(x*z + w*y), 2*(y*z - w*x), 1 - 2*(x*x + y*y), 0,
+    //     0, 0, 0, 1
+    // );
 }
