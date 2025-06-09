@@ -9,6 +9,7 @@
 #include "common/mytime.h"
 #include "common/camera.h"
 #include "common/quaternion.h"
+#include "drawhelper.h"
 
 const int WINDOW_WIDTH = 500;
 const int WINDOW_HEIGHT = 500;
@@ -43,7 +44,7 @@ int main(){
 
     Model *model = new Model();
     Instance importIns = {model};
-    importIns.transform = {{0, 0, 0}, {0, 0, 0}, 1};
+    importIns.transform = {{0, 0, 1}, {0, 0, 0}, 1};
     importFBX("assets/Test2/test2.fbx", model);
     // importFBX("assets/example1.fbx", model);
     // importFBX("assets/Stair/Stair.fbx", model);
@@ -212,6 +213,9 @@ int main(){
 
         // main
         clear_screen();
+        // DrawHelper::drawLine({1, 20, 1}, {50, 1, 1}, {0, 0, 0, 255});
+        // DrawHelper::drawLine({1, 5, 0}, {5, 1, 0}, {0, 0, 0, 255});
+        // DrawHelper::drawLine({0, 0, 8}, {15, 3, 8}, {255, 0, 0, 255});
         // inst.transform.rotation.y += 100.0f * MyTime::deltaTime;
         render_instance(inst, trackballCamera, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);

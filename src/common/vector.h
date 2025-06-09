@@ -1,9 +1,11 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+#include <iostream>
 #include "vectorint.h"
 #include <string>
 #include <cmath>
+#include <cassert>
 
 class Vec2{
 public:

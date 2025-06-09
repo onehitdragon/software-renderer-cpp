@@ -4,6 +4,7 @@
 #include <vector>
 #include "vector.h"
 #include "../global.h"
+#include "../helper.h"
 
 class Plane{
 public:
@@ -13,6 +14,11 @@ public:
 };
 
 float distancePointToPlane(const Plane &plane, const Vec3 &point);
+Vec3 getPointInLineAndThroughPlane(
+    const Vec3 &pointA,
+    const Vec3 &pointB,
+    const Plane &plane
+);
 
 class ClippingPlaneStatus{
 public:
@@ -36,7 +42,8 @@ bool oneVertexFront(
     std::vector<Triangle> &trianglesWaitingProcess,
     std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
-    const int &i
+    const int &i,
+    ClippingInfo &clippingInfo
 );
 bool twoVertexFront(
     const Plane &plane,
@@ -52,7 +59,8 @@ bool twoVertexFront(
     std::vector<Triangle> &trianglesWaitingProcess,
     std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
-    const int &i
+    const int &i,
+    ClippingInfo &clippingInfo
 );
 
 #endif

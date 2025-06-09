@@ -89,7 +89,7 @@ TrackballCamera::TrackballCamera(){
     pitch = 0;
     speed = 0.5f;
     panningSpeed = 0.01f;
-    center = {2, 0, 0};
+    center = {0, 0, 0};
     rotated = Quaternion(1, 0, 0, 0);
     rotatedInverse = Quaternion(1, 0, 0, 0);
     localPosition = {0, 0, -radius};

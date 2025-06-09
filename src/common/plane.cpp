@@ -52,7 +52,8 @@ bool oneVertexFront(
     std::vector<Triangle> &trianglesWaitingProcess,
     std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
-    const int &i
+    const int &i,
+    ClippingInfo &clippingInfo
 ){
     bool isOneVertexFront = false;
     Vec3 frontVertex, rearVertex1, rearVertex2;
@@ -63,6 +64,8 @@ bool oneVertexFront(
         rearVertex1 = vertexB;
         rearVertex2 = vertexC;
         frontIndex = triangle.x;
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.y);
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.z);
         frontTextureCoor = textureCoor.uv1;
         rearTextureCoor1 = textureCoor.uv2;
         rearTextureCoor2 = textureCoor.uv3;
@@ -73,6 +76,8 @@ bool oneVertexFront(
         rearVertex1 = vertexA;
         rearVertex2 = vertexC;
         frontIndex = triangle.y;
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.x);
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.z);
         frontTextureCoor = textureCoor.uv2;
         rearTextureCoor1 = textureCoor.uv1;
         rearTextureCoor2 = textureCoor.uv3;
@@ -83,6 +88,8 @@ bool oneVertexFront(
         rearVertex1 = vertexA;
         rearVertex2 = vertexB;
         frontIndex = triangle.z;
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.x);
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.y);
         frontTextureCoor = textureCoor.uv3;
         rearTextureCoor1 = textureCoor.uv1;
         rearTextureCoor2 = textureCoor.uv2;
@@ -132,7 +139,8 @@ bool twoVertexFront(
     std::vector<Triangle> &trianglesWaitingProcess,
     std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
-    const int &i
+    const int &i,
+    ClippingInfo &clippingInfo
 ){
     bool isTwoVertexFront = false;
     Vec3 frontVertex1, frontVertex2, rearVertex;
@@ -144,6 +152,7 @@ bool twoVertexFront(
         rearVertex = vertexC;
         frontIndex1 = triangle.x;
         frontIndex2 = triangle.y;
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.z);
         frontTextureCoor1 = textureCoor.uv1;
         frontTextureCoor2 = textureCoor.uv2;
         rearTextureCoor = textureCoor.uv3;
@@ -155,6 +164,7 @@ bool twoVertexFront(
         rearVertex = vertexB;
         frontIndex1 = triangle.x;
         frontIndex2 = triangle.z;
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.y);
         frontTextureCoor1 = textureCoor.uv1;
         frontTextureCoor2 = textureCoor.uv3;
         rearTextureCoor = textureCoor.uv2;
@@ -166,6 +176,7 @@ bool twoVertexFront(
         rearVertex = vertexA;
         frontIndex1 = triangle.y;
         frontIndex2 = triangle.z;
+        clippingInfo.ignoredVertexIndexSet.insert(triangle.x);
         frontTextureCoor1 = textureCoor.uv2;
         frontTextureCoor2 = textureCoor.uv3;
         rearTextureCoor = textureCoor.uv1;

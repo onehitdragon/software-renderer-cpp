@@ -9,6 +9,7 @@
 #include "asset.h"
 
 Vec2 viewportToCanvasCoordinate(const Vec3 &vec3){
+    // top-left (0, 0) bottom-right (cW, cH)
     return {
         vec3.x + canvas_half_cW,
         -vec3.y + canvas_half_cH
@@ -26,7 +27,7 @@ void putPixel(const int &x, const int &y){
 
 void putPixel(const int &x, const int &y, const Vec4 &color, const float &dept){
     int offset;
-    offset = x  + (y * canvas_cW);
+    offset = x + (y * canvas_cW);
     if(dept <= deptBuffer[offset]){
         return;
     }
@@ -522,10 +523,13 @@ ClippingPlaneStatus clipWholeObject(const Sphere &boundingSphere){
         }
         if(d > boundingSphere.radius){
             status.fronts.push_back(plane);
+            continue;
         }
         if(std::abs(d) < boundingSphere.radius){
             status.intersects.push_back(plane);
+            continue;
         }
+        std::cout << "clipWholeObject err" << std::endl;
     }
 
     return status;
@@ -570,13 +574,15 @@ void clipTriangle(
             else{
                 if(oneVertexFront(
                     plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, textureCoor,
-                    verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i
+                    verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i,
+                    clippingInfo
                 )){
                     break;
                 }
                 else if(twoVertexFront(
                     plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, textureCoor,
-                    verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i
+                    verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i,
+                    clippingInfo
                 )){
                     break;
                 }
@@ -610,6 +616,8 @@ ClippingInfo clipping(
     initClippingPlanes();
     ClippingPlaneStatus status = clipWholeObject(getBoudingSphere(applieds));
     if(status.rears.size() > 0){
+        clippingInfo.status = ClippingStatus::COMPLETE;
+        
         return clippingInfo;
     }
     if(status.fronts.size() == clippingPlaneLength){
@@ -633,7 +641,8 @@ M4x1 m4x1_cache_0;
 M4x1 m4x1_cache_1;
 std::vector<Vec3> apply(const Instance &instance, const BaseCamera &currentCamera){
     makeModelTransform(instance.transform);
-    makeCameraTransform2(currentCamera);
+    makeCameraTransform();
+    // makeCameraTransform2(currentCamera);
     avx256_multi_matrix_4x4_4x4(
         m_camera.value,
         m_modeltransform.value,
@@ -667,10 +676,11 @@ void makeProjectionTransform(){
 }
 
 M3x1 m3x1_cache_0;
-void project(std::vector<Vec3> &applieds){
+void project(std::vector<Vec3> &applieds, const ClippingInfo &clippingInfo){
     makeProjectionTransform();
 
     for(int i = 0, n = applieds.size(); i < n; i++){
+        if(clippingInfo.ignoredVertexIndexSet.count(i)) continue;
         Vec3 applied = applieds[i];
         vec3_to_M4x1(applied, m4x1_cache_0);
         avx256_multi_matrix_3x4_4x1(
@@ -678,11 +688,27 @@ void project(std::vector<Vec3> &applieds){
             m4x1_cache_0.value,
             m3x1_cache_0.value
         );
+        
         Vec3 projected = homogeneous3DToCartesian(
             matrix_to_vec3(m3x1_cache_0)
         );
         applieds[i] = projected;
     }
+}
+Vec3 project(const Vec3 &worldPoint){
+    makeProjectionTransform();
+
+    vec3_to_M4x1(worldPoint, m4x1_cache_0);
+    avx256_multi_matrix_3x4_4x1(
+        m_projection.value,
+        m4x1_cache_0.value,
+        m3x1_cache_0.value
+    );
+    Vec3 projected = homogeneous3DToCartesian(
+        matrix_to_vec3(m3x1_cache_0)
+    );
+
+    return projected;
 }
 
 void clear_screen(){
@@ -698,7 +724,7 @@ void render_instance(const Instance &instance, const BaseCamera &currentCamera, 
         return;
     }
 
-    project(applieds);
+    project(applieds, clippingInfo);
     for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
         Triangle triangle = clippingInfo.triangles->at(i);
         TextureCoor textureCoor = clippingInfo.textureCoors->at(i);

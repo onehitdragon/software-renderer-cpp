@@ -133,6 +133,7 @@ float dot(const Vec3 &vec1, const Vec3 &vec2){
     return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
 }
 Vec3 homogeneous3DToCartesian(const Vec3 &vec3){
+    assert(vec3.z != 0 && "homogeneous3DToCartesian err, clipping can be wrong");
     return {
         vec3.x / vec3.z,
         vec3.y / vec3.z,
