@@ -1,5 +1,10 @@
 #include "drawhelper.h"
 
+// LineClippingInfo clipLine(const Vec3 &start, const Vec3 &end){
+//     LineClippingInfo clippingInfo;
+
+//     return clippingInfo;
+// }
 void drawLineLow(Vec2 p0, Vec2 p1, const Vec4 &color){
     int dx = p1.x - p0.x;
     int dy = p1.y - p0.y;

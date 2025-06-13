@@ -97,7 +97,8 @@ int main(){
     int fps = 0;
     std::string fpsText = "FPS: ";
     Uint64 startTime = SDL_GetTicks();
-    Instance inst = std::ref(importIns);
+    Instance inst = std::ref(cubeInstance);
+    // Instance inst = std::ref(importIns);
     int idx = 0;
     bool pressed = false;
     bool enableX = false, enableY = false;
@@ -213,6 +214,7 @@ int main(){
 
         // main
         clear_screen();
+        // drawFilledTriangle_test({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
         // DrawHelper::drawLine({1, 20, 1}, {50, 1, 1}, {0, 0, 0, 255});
         // DrawHelper::drawLine({1, 5, 0}, {5, 1, 0}, {0, 0, 0, 255});
         // DrawHelper::drawLine({0, 0, 8}, {15, 3, 8}, {255, 0, 0, 255});

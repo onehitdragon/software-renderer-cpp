@@ -1,12 +1,4 @@
-#include <iostream>
-#include <algorithm>
 #include "helper.h"
-#include "global.h"
-#include "common/matrix.h"
-#include "common/plane.h"
-#include "common/sphere.h"
-#include "common/fixednumber.h"
-#include "asset.h"
 
 Vec2 viewportToCanvasCoordinate(const Vec3 &vec3){
     // top-left (0, 0) bottom-right (cW, cH)
@@ -345,18 +337,66 @@ void drawFilledTriangle(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &text
         }
     }
 }
+void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
+    Vec2 p1_f = viewportToCanvasCoordinate(p1_o);
+    Vec2 p2_f = viewportToCanvasCoordinate(p2_o);
+    Vec2 p3_f = viewportToCanvasCoordinate(p3_o);
+    // Vec2 p1_f(20, 20);
+    // Vec2 p2_f(100, 400);
+    // Vec2 p3_f(400, 20);
+    Vec2 p12_f = p2_f - p1_f;
+    Vec2 p13_f = p3_f - p1_f;
+    if(scalarCrossVec(p12_f, p13_f) < 0){
+        swapVec(p2_f, p3_f);
+    }
+    Vec2Int p1_q = fixedNumber_fixedXY(p1_f);
+    Vec2Int p2_q = fixedNumber_fixedXY(p2_f);
+    Vec2Int p3_q = fixedNumber_fixedXY(p3_f);
+    Vec2Int min, max;
+    min.x = (std::min(std::min(p1_q.x, p2_q.x), p3_q.x) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    min.y = (std::min(std::min(p1_q.y, p2_q.y), p3_q.y) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    max.x = (std::max(std::max(p1_q.x, p2_q.x), p3_q.x) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    max.y = (std::max(std::max(p1_q.y, p2_q.y), p3_q.y) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    Vec2Int p12_q = p2_q - p1_q;
+    Vec2Int p23_q = p3_q - p2_q;
+    Vec2Int p31_q = p1_q - p3_q;
+    Vec2Int p_q(min.x << fixedNumber_RESOLUTION, min.y << fixedNumber_RESOLUTION);
+    Vec2Int p1p_q = p_q - p1_q;
+    Vec2Int p2p_q = p_q - p2_q;
+    Vec2Int p3p_q = p_q - p3_q;
+    int E12_qq = scalarCrossVec(p12_q, p1p_q);
+    int E23_qq = scalarCrossVec(p23_q, p2p_q);
+    int E31_qq = scalarCrossVec(p31_q, p3p_q);
+    if(p12_q.y < 0 || (p12_q.y == 0 && p12_q.x > 0)) E12_qq++;
+    if(p23_q.y < 0 || (p23_q.y == 0 && p23_q.x > 0)) E23_qq++;
+    if(p31_q.y < 0 || (p31_q.y == 0 && p31_q.x > 0)) E31_qq++;
+    Vec2Int p12_qq = p12_q << fixedNumber_RESOLUTION;
+    Vec2Int p23_qq = p23_q << fixedNumber_RESOLUTION;
+    Vec2Int p31_qq = p31_q << fixedNumber_RESOLUTION;
+    for(int y = min.y; y <= max.y; y++){
+        int E12_qq_copy = E12_qq;
+        int E23_qq_copy = E23_qq;
+        int E31_qq_copy = E31_qq;
+        for(int x = min.x; x <= max.x; x++){
+            // std::cout << E12 << " " << E23 << " " << E31 << std::endl;
+            if(E12_qq_copy > 0 && E23_qq_copy > 0 && E31_qq_copy > 0){
+                putPixel(x, y);
+            }
+            E12_qq_copy -= p12_qq.y;
+            E23_qq_copy -= p23_qq.y;
+            E31_qq_copy -= p31_qq.y;
+        }
+        E12_qq += p12_qq.x;
+        E23_qq += p23_qq.x;
+        E31_qq += p31_qq.x;
+    }
+}
 
 void renderTriangle(
     const Triangle &triangle,
     const TextureCoor &textureCoor,
     const std::vector<Vec3> &projecteds
 ){
-    // std::cout << vecToString(projecteds[triangle.x]) << std::endl;
-    // std::cout << vecToString(projecteds[triangle.y]) << std::endl;
-    // std::cout << vecToString(projecteds[triangle.z]) << std::endl;
-    // std::cout << textureCoor.uv1.x << " " << textureCoor.uv1.y << std::endl;
-    // std::cout << textureCoor.uv2.x << " " << textureCoor.uv2.y << std::endl;
-    // std::cout << textureCoor.uv3.x << " " << textureCoor.uv3.y << std::endl;
     drawFilledTriangle(
         projecteds[triangle.x],
         projecteds[triangle.y],
@@ -368,7 +408,7 @@ void renderTriangle(
     const Triangle &triangle,
     const std::vector<Vec3> &projecteds
 ){
-    drawFilledTriangle(
+    drawFilledTriangle_test(
         projecteds[triangle.x],
         projecteds[triangle.y],
         projecteds[triangle.z]
@@ -575,14 +615,14 @@ void clipTriangle(
                 if(oneVertexFront(
                     plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, textureCoor,
                     verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i,
-                    clippingInfo
+                    clippingInfo.ignoredVertexIndexSet
                 )){
                     break;
                 }
                 else if(twoVertexFront(
                     plane, dA, dB, dC, vertexA, vertexB, vertexC, triangle, textureCoor,
                     verticies, trianglesWaitingProcess, textureCoorsWaitingProcess, trianglesWaitingProcess_plane, i,
-                    clippingInfo
+                    clippingInfo.ignoredVertexIndexSet
                 )){
                     break;
                 }
@@ -729,8 +769,8 @@ void render_instance(const Instance &instance, const BaseCamera &currentCamera, 
         Triangle triangle = clippingInfo.triangles->at(i);
         TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
         // if(i == idx){
-            // renderTriangle(triangle, applieds);
-            renderTriangle(triangle, textureCoor, applieds);
+            renderTriangle(triangle, applieds);
+            // renderTriangle(triangle, textureCoor, applieds);
         // }
     }
 }

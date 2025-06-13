@@ -23,7 +23,7 @@ Instance::Instance(Model *model): model(model){}
 
 Camera::Camera(){}
 Camera::Camera(float distanceToViewport, Transform transform): distanceToViewport(distanceToViewport), transform(transform){}
-Camera camera = {1, Transform(Vec3(0, 0, 0), Vec3(0, 0, 0), 0)};
+Camera camera = {1, Transform(Vec3(0, 0, -5), Vec3(0, 0, 0), 0)};
 
 unsigned int canvas_cW = 0;
 unsigned int canvas_cH = 0;

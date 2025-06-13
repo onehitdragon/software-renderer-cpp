@@ -1,10 +1,12 @@
 #ifndef PLANE_H
 #define PLANE_H
 
+#include <string>
+#include <iostream>
 #include <vector>
+#include <unordered_set>
 #include "vector.h"
 #include "../global.h"
-#include "../helper.h"
 
 class Plane{
 public:
@@ -43,7 +45,7 @@ bool oneVertexFront(
     std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
     const int &i,
-    ClippingInfo &clippingInfo
+    std::unordered_set<int> &ignoredVertexIndexSet
 );
 bool twoVertexFront(
     const Plane &plane,
@@ -60,7 +62,7 @@ bool twoVertexFront(
     std::vector<TextureCoor> &textureCoorsWaitingProcess,
     std::vector<int> &trianglesWaitingProcess_plane,
     const int &i,
-    ClippingInfo &clippingInfo
+    std::unordered_set<int> &ignoredVertexIndexSet
 );
 
 #endif
