@@ -17,6 +17,14 @@ void putPixel(const int &x, const int &y){
     canvasBuffer[offset + 3] = color.w;
 }
 
+void putPixel(const int &x, const int &y, const Vec4 &color){
+    int offset = (x * 4) + (y * canvas_four_mul_cW);
+    canvasBuffer[offset + 0] = color.x;
+    canvasBuffer[offset + 1] = color.y;
+    canvasBuffer[offset + 2] = color.z;
+    canvasBuffer[offset + 3] = color.w;
+}
+
 void putPixel(const int &x, const int &y, const Vec4 &color, const float &dept){
     int offset;
     offset = x + (y * canvas_cW);
@@ -337,6 +345,17 @@ void drawFilledTriangle(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &text
         }
     }
 }
+Vec3Int edge_value(
+    const Vec2Int &p12, const Vec2Int &p23, const Vec2Int &p31,
+    const int &C12, const int &C23, const int &C31,
+    const Vec2Int &p
+){
+    int E12 = C12 + p12.x*p.y - p12.y*p.x;
+    int E23 = C23 + p23.x*p.y - p23.y*p.x;
+    int E31 = C31 + p31.x*p.y - p31.y*p.x;
+
+    return Vec3Int(E12, E23, E31);
+}
 void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
     Vec2 p1_f = viewportToCanvasCoordinate(p1_o);
     Vec2 p2_f = viewportToCanvasCoordinate(p2_o);
@@ -360,35 +379,70 @@ void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
     Vec2Int p12_q = p2_q - p1_q;
     Vec2Int p23_q = p3_q - p2_q;
     Vec2Int p31_q = p1_q - p3_q;
-    Vec2Int p_q(min.x << fixedNumber_RESOLUTION, min.y << fixedNumber_RESOLUTION);
-    Vec2Int p1p_q = p_q - p1_q;
-    Vec2Int p2p_q = p_q - p2_q;
-    Vec2Int p3p_q = p_q - p3_q;
-    int E12_qq = scalarCrossVec(p12_q, p1p_q);
-    int E23_qq = scalarCrossVec(p23_q, p2p_q);
-    int E31_qq = scalarCrossVec(p31_q, p3p_q);
-    if(p12_q.y < 0 || (p12_q.y == 0 && p12_q.x > 0)) E12_qq++;
-    if(p23_q.y < 0 || (p23_q.y == 0 && p23_q.x > 0)) E23_qq++;
-    if(p31_q.y < 0 || (p31_q.y == 0 && p31_q.x > 0)) E31_qq++;
+    int C12_qq = p12_q.y*p1_q.x - p12_q.x*p1_q.y;
+    int C23_qq = p23_q.y*p2_q.x - p23_q.x*p2_q.y;
+    int C31_qq = p31_q.y*p3_q.x - p31_q.x*p3_q.y;
+    if(p12_q.y < 0 || (p12_q.y == 0 && p12_q.x > 0)) C12_qq++;
+    if(p23_q.y < 0 || (p23_q.y == 0 && p23_q.x > 0)) C23_qq++;
+    if(p31_q.y < 0 || (p31_q.y == 0 && p31_q.x > 0)) C31_qq++;
     Vec2Int p12_qq = p12_q << fixedNumber_RESOLUTION;
     Vec2Int p23_qq = p23_q << fixedNumber_RESOLUTION;
     Vec2Int p31_qq = p31_q << fixedNumber_RESOLUTION;
-    for(int y = min.y; y <= max.y; y++){
-        int E12_qq_copy = E12_qq;
-        int E23_qq_copy = E23_qq;
-        int E31_qq_copy = E31_qq;
-        for(int x = min.x; x <= max.x; x++){
-            // std::cout << E12 << " " << E23 << " " << E31 << std::endl;
-            if(E12_qq_copy > 0 && E23_qq_copy > 0 && E31_qq_copy > 0){
-                putPixel(x, y);
+    int block_size = 8;
+    int block_size_minus_one = block_size - 1;
+    int block_size_bitmask = ~(block_size_minus_one);
+    min.x &= block_size_bitmask;
+    min.y &= block_size_bitmask;
+    for(int y = min.y; y <= max.y; y += block_size){
+        for(int x = min.x; x <= max.x; x += block_size){
+            int x0_q = x << fixedNumber_RESOLUTION;
+            int y0_q = y << fixedNumber_RESOLUTION;
+            int x1_q = (x + block_size_minus_one) << fixedNumber_RESOLUTION;
+            int y1_q = (y + block_size_minus_one) << fixedNumber_RESOLUTION;
+            Vec2Int corner1_q(x0_q, y0_q);
+            Vec2Int corner2_q(x1_q, y0_q);
+            Vec2Int corner3_q(x1_q, y1_q);
+            Vec2Int corner4_q(x0_q, y1_q);
+            Vec3Int corner1_E_qq = edge_value(p12_q, p23_q, p31_q, C12_qq, C23_qq, C31_qq, corner1_q);
+            Vec3Int corner2_E_qq = edge_value(p12_q, p23_q, p31_q, C12_qq, C23_qq, C31_qq, corner2_q);
+            Vec3Int corner3_E_qq = edge_value(p12_q, p23_q, p31_q, C12_qq, C23_qq, C31_qq, corner3_q);
+            Vec3Int corner4_E_qq = edge_value(p12_q, p23_q, p31_q, C12_qq, C23_qq, C31_qq, corner4_q);
+            Vec3Int corner1_E_bool = corner1_E_qq.toBool();
+            Vec3Int corner2_E_bool = corner2_E_qq.toBool();
+            Vec3Int corner3_E_bool = corner3_E_qq.toBool();
+            Vec3Int corner4_E_bool = corner4_E_qq.toBool();
+            int E1 = corner1_E_bool.x | (corner2_E_bool.x << 1) | (corner3_E_bool.x << 2) | (corner4_E_bool.x << 3);
+            int E2 = corner1_E_bool.y | (corner2_E_bool.y << 1) | (corner3_E_bool.y << 2) | (corner4_E_bool.y << 3);
+            int E3 = corner1_E_bool.z | (corner2_E_bool.z << 1) | (corner3_E_bool.z << 2) | (corner4_E_bool.z << 3);
+            if(E1 == 0x0 || E2 == 0x0 || E3 == 0x0){
+                continue;
             }
-            E12_qq_copy -= p12_qq.y;
-            E23_qq_copy -= p23_qq.y;
-            E31_qq_copy -= p31_qq.y;
+            if(E1 == 0xF && E2 == 0xF && E3 == 0xF){
+                for(int yi = y, yi_max = y + block_size; yi < yi_max; yi++){
+                    for(int xi = x, xi_max = x + block_size; xi < xi_max; xi++){
+                        putPixel(xi, yi);
+                    }
+                }
+            }
+            else{
+                for(int yi = y, yi_max = y + block_size; yi < yi_max; yi++){
+                    int E12_qq = corner1_E_qq.x;
+                    int E23_qq = corner1_E_qq.y;
+                    int E31_qq = corner1_E_qq.z;
+                    for(int xi = x, xi_max = x + block_size; xi < xi_max; xi++){
+                        if(E12_qq > 0 && E23_qq > 0 && E31_qq > 0){
+                            putPixel(xi, yi);
+                        }
+                        E12_qq -= p12_qq.y;
+                        E23_qq -= p23_qq.y;
+                        E31_qq -= p31_qq.y;
+                    }
+                    corner1_E_qq.x += p12_qq.x;
+                    corner1_E_qq.y += p23_qq.x;
+                    corner1_E_qq.z += p31_qq.x;
+                }
+            }
         }
-        E12_qq += p12_qq.x;
-        E23_qq += p23_qq.x;
-        E31_qq += p31_qq.x;
     }
 }
 
@@ -408,7 +462,17 @@ void renderTriangle(
     const Triangle &triangle,
     const std::vector<Vec3> &projecteds
 ){
-    drawFilledTriangle_test(
+    // drawFilledTriangle(
+    //     projecteds[triangle.x],
+    //     projecteds[triangle.y],
+    //     projecteds[triangle.z]
+    // );
+    // drawFilledTriangle_test(
+    //     projecteds[triangle.x],
+    //     projecteds[triangle.y],
+    //     projecteds[triangle.z]
+    // );
+    DrawTriangleCurrency::draw(
         projecteds[triangle.x],
         projecteds[triangle.y],
         projecteds[triangle.z]
@@ -767,7 +831,7 @@ void render_instance(const Instance &instance, const BaseCamera &currentCamera, 
     project(applieds, clippingInfo);
     for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
         Triangle triangle = clippingInfo.triangles->at(i);
-        TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
+        // TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
         // if(i == idx){
             renderTriangle(triangle, applieds);
             // renderTriangle(triangle, textureCoor, applieds);

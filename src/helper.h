@@ -11,6 +11,7 @@
 #include "common/sphere.h"
 #include "common/fixednumber.h"
 #include "asset.h"
+#include "helpercurrency.h"
 
 enum class ClippingStatus{
     COMPLETE,
@@ -35,6 +36,7 @@ public:
 // };
 
 Vec2 viewportToCanvasCoordinate(const Vec3 &vec3);
+void putPixel(const int &x, const int &y, const Vec4 &color);
 void putPixel(const int &x, const int &y, const Vec4 &color, const float &dept);
 Vec3 project(const Vec3 &worldPoint);
 void clear_screen();

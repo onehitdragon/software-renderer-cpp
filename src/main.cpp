@@ -10,6 +10,7 @@
 #include "common/camera.h"
 #include "common/quaternion.h"
 #include "drawhelper.h"
+#include "helpercurrency.h"
 
 const int WINDOW_WIDTH = 500;
 const int WINDOW_HEIGHT = 500;
@@ -97,7 +98,7 @@ int main(){
     int fps = 0;
     std::string fpsText = "FPS: ";
     Uint64 startTime = SDL_GetTicks();
-    Instance inst = std::ref(cubeInstance);
+    Instance inst = std::ref(teapotInstance);
     // Instance inst = std::ref(importIns);
     int idx = 0;
     bool pressed = false;
@@ -214,11 +215,11 @@ int main(){
 
         // main
         clear_screen();
+        // DrawTriangleCurrency::draw({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
         // drawFilledTriangle_test({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
         // DrawHelper::drawLine({1, 20, 1}, {50, 1, 1}, {0, 0, 0, 255});
         // DrawHelper::drawLine({1, 5, 0}, {5, 1, 0}, {0, 0, 0, 255});
         // DrawHelper::drawLine({0, 0, 8}, {15, 3, 8}, {255, 0, 0, 255});
-        // inst.transform.rotation.y += 100.0f * MyTime::deltaTime;
         render_instance(inst, trackballCamera, idx);
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
