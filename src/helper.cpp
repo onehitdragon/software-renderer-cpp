@@ -393,6 +393,7 @@ void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
     int block_size_bitmask = ~(block_size_minus_one);
     min.x &= block_size_bitmask;
     min.y &= block_size_bitmask;
+    return;
     for(int y = min.y; y <= max.y; y += block_size){
         for(int x = min.x; x <= max.x; x += block_size){
             int x0_q = x << fixedNumber_RESOLUTION;
@@ -467,16 +468,16 @@ void renderTriangle(
     //     projecteds[triangle.y],
     //     projecteds[triangle.z]
     // );
-    // drawFilledTriangle_test(
-    //     projecteds[triangle.x],
-    //     projecteds[triangle.y],
-    //     projecteds[triangle.z]
-    // );
-    DrawTriangleCurrency::draw(
+    drawFilledTriangle_test(
         projecteds[triangle.x],
         projecteds[triangle.y],
         projecteds[triangle.z]
     );
+    // DrawTriangleCurrency::draw(
+    //     projecteds[triangle.x],
+    //     projecteds[triangle.y],
+    //     projecteds[triangle.z]
+    // );
 }
 
 M4x4 m_scale;
@@ -829,12 +830,14 @@ void render_instance(const Instance &instance, const BaseCamera &currentCamera, 
     }
 
     project(applieds, clippingInfo);
-    for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
-        Triangle triangle = clippingInfo.triangles->at(i);
-        // TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
-        // if(i == idx){
-            renderTriangle(triangle, applieds);
-            // renderTriangle(triangle, textureCoor, applieds);
-        // }
-    }
+    
+    DrawTriangleCurrency::renderTriangles(clippingInfo.triangles, applieds);
+    // for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
+    //     Triangle triangle = clippingInfo.triangles->at(i);
+    //     // TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
+    //     // if(i == idx){
+    //         renderTriangle(triangle, applieds);
+    //         // renderTriangle(triangle, textureCoor, applieds);
+    //     // }
+    // }
 }

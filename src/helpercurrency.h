@@ -7,10 +7,12 @@
 #include <thread>
 #include <vector>
 #include <limits>
+#include "global.h"
 #include "common/fixednumber.h"
 #include "common/vector.h"
 #include "common/vectorint.h"
 #include "screenhelper.h"
+#include "multithread/threadpool.h"
 
 class TriangleEdgeData{
 public:
@@ -31,10 +33,12 @@ public:
 
 class DrawTriangleCurrency{
 public:
+    void static renderTriangles(const std::vector<Triangle> *triangles, const std::vector<Vec3> &projecteds);
     void static draw(const Vec3 &p1_vp, const Vec3 &p2_vp, const Vec3 &p3_vp);
+    void static draw2(const Vec3 &p1_vp, const Vec3 &p2_vp, const Vec3 &p3_vp);
 private:
     void static loop_blocks(Vec2Int start, int block_per_thread, TriangleEdgeData ed, Vec4 color);
-    void static draw_block(int x, int y, TriangleEdgeData ed, Vec4 color);
+    void static draw_block(int x, int y, const TriangleEdgeData &ed, Vec4 color);
 };
 
 #endif

@@ -215,7 +215,8 @@ int main(){
 
         // main
         clear_screen();
-        // DrawTriangleCurrency::draw({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
+        // DrawTriangleCurrency::draw2({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
+        // loop = false;
         // drawFilledTriangle_test({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
         // DrawHelper::drawLine({1, 20, 1}, {50, 1, 1}, {0, 0, 0, 255});
         // DrawHelper::drawLine({1, 5, 0}, {5, 1, 0}, {0, 0, 0, 255});

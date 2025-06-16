@@ -67,7 +67,7 @@ Vec3Int edge_value2(
     return Vec3Int(E12, E23, E31);
 }
 
-void DrawTriangleCurrency::draw_block(int x, int y, TriangleEdgeData ed, Vec4 color){
+void DrawTriangleCurrency::draw_block(int x, int y, const TriangleEdgeData &ed, Vec4 color){
     int x0_q = x << fixedNumber_RESOLUTION;
     int y0_q = y << fixedNumber_RESOLUTION;
     int x1_q = (x + ed.block_size_minus_one) << fixedNumber_RESOLUTION;
@@ -168,4 +168,31 @@ void DrawTriangleCurrency::draw(const Vec3 &p1_vp, const Vec3 &p2_vp, const Vec3
     for(int i = 0; i < total_thread - 1; i++){
         threads[i].join();
     }
+}
+
+// ThreadPool threadPool(total_thread - 1);
+void DrawTriangleCurrency::draw2(const Vec3 &p1_vp, const Vec3 &p2_vp, const Vec3 &p3_vp){
+    TriangleEdgeData ed(p1_vp, p2_vp, p3_vp);
+    // for(int y = ed.min_block.y; y < ed.max_block.y; y += ed.block_size){
+    //     for(int x = ed.min_block.x; x < ed.max_block.x; x += ed.block_size){
+    //         // threadPool.enqueue_task([x, y, ed]{
+    //             DrawTriangleCurrency::draw_block(x, y, ed, {0, 0, 0, 255});
+    //         // });
+    //     }
+    // }
+}
+
+void DrawTriangleCurrency::renderTriangles(
+    const std::vector<Triangle> *triangles,
+    const std::vector<Vec3> &projecteds
+){
+    for(int i = 0, n = triangles->size(); i < n; i++){
+        Triangle triangle = triangles->at(i);
+        draw2(
+            projecteds[triangle.x],
+            projecteds[triangle.y],
+            projecteds[triangle.z]
+        );
+    }
+    // threadPool.main_thread();
 }

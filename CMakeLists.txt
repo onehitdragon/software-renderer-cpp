@@ -24,7 +24,7 @@ find_package(SDL3_ttf REQUIRED)
 find_package(SDL3_image REQUIRED)
 find_package(ZLIB REQUIRED)
 
-file(GLOB SOURCES "src/*.cpp" "src/common/*.cpp" "src/importer/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/common/*.cpp" "src/importer/*.cpp" "src/multithread/*.cpp")
 add_executable(cgcpp ${SOURCES})
 target_compile_options(cgcpp PRIVATE -march=native -O3)
 
