@@ -393,7 +393,6 @@ void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
     int block_size_bitmask = ~(block_size_minus_one);
     min.x &= block_size_bitmask;
     min.y &= block_size_bitmask;
-    return;
     for(int y = min.y; y <= max.y; y += block_size){
         for(int x = min.x; x <= max.x; x += block_size){
             int x0_q = x << fixedNumber_RESOLUTION;

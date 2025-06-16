@@ -13851,6 +13851,7 @@ teapotModel->triangles.push_back( {2824, 2080, 2079, {0, 0, 0, 255}} );
 teapotModel->triangles.push_back( {2080, 2825, 2826, {0, 0, 0, 255}} );
 
 teapotModel->triangles.push_back( {2827, 2081, 2080, {0, 0, 0, 255}} );
+teapotModel->textureCoors.assign(teapotModel->triangles.size(), {{0, 0}, {0, 0}, {0, 0}});
 }
 
 Instance teapotInstance;

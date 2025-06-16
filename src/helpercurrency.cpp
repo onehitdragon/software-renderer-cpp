@@ -36,7 +36,7 @@ TriangleEdgeData::TriangleEdgeData(const Vec3 &p1_vp, const Vec3 &p2_vp, const V
     min.y = (std::min(std::min(p1_q.y, p2_q.y), p3_q.y) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
     max.x = (std::max(std::max(p1_q.x, p2_q.x), p3_q.x) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
     max.y = (std::max(std::max(p1_q.y, p2_q.y), p3_q.y) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
-    block_size = 8;
+    block_size = 32;
     block_size_minus_one = block_size - 1;
     int block_size_bitmask = ~(block_size_minus_one);
     min_block = min & block_size_bitmask;
@@ -170,16 +170,24 @@ void DrawTriangleCurrency::draw(const Vec3 &p1_vp, const Vec3 &p2_vp, const Vec3
     }
 }
 
-// ThreadPool threadPool(total_thread - 1);
+#include "../otherlib/taskflow/taskflow/taskflow.hpp"
+tf::Executor executor;
+
+// ThreadPool threadPool(total_thread - 4);
 void DrawTriangleCurrency::draw2(const Vec3 &p1_vp, const Vec3 &p2_vp, const Vec3 &p3_vp){
     TriangleEdgeData ed(p1_vp, p2_vp, p3_vp);
-    // for(int y = ed.min_block.y; y < ed.max_block.y; y += ed.block_size){
-    //     for(int x = ed.min_block.x; x < ed.max_block.x; x += ed.block_size){
-    //         // threadPool.enqueue_task([x, y, ed]{
-    //             DrawTriangleCurrency::draw_block(x, y, ed, {0, 0, 0, 255});
-    //         // });
-    //     }
-    // }
+    for(int y = ed.min_block.y; y < ed.max_block.y; y += ed.block_size){
+        for(int x = ed.min_block.x; x < ed.max_block.x; x += ed.block_size){
+            // threadPool.enqueue_task([x, y, ed]{
+            //     DrawTriangleCurrency::draw_block(x, y, ed, {0, 0, 0, 255});
+            // });
+            executor.silent_async(
+                [x, y, ed]{
+                    DrawTriangleCurrency::draw_block(x, y, ed, {0, 0, 0, 255});
+                }
+            );
+        }
+    }
 }
 
 void DrawTriangleCurrency::renderTriangles(
@@ -195,4 +203,5 @@ void DrawTriangleCurrency::renderTriangles(
         );
     }
     // threadPool.main_thread();
+    executor.wait_for_all();
 }

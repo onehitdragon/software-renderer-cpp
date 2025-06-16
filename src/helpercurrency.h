@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <thread>
 #include <vector>
+#include <queue>
 #include <limits>
 #include "global.h"
 #include "common/fixednumber.h"
