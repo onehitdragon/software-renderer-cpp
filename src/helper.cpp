@@ -356,7 +356,18 @@ Vec3Int edge_value(
 
     return Vec3Int(E12, E23, E31);
 }
-void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
+Vec3Int edge_value(
+    const Vec2Int &p12, const Vec2Int &p23, const Vec2Int &p31,
+    const int &C12, const int &C23, const int &C31,
+    const Vec2Int &s12, const Vec2Int &s23, const Vec2Int &s31
+){
+    int E12 = C12 + p12.x*s12.y - p12.y*s12.x;
+    int E23 = C23 + p23.x*s23.y - p23.y*s23.x;
+    int E31 = C31 + p31.x*s31.y - p31.y*s31.x;
+
+    return Vec3Int(E12, E23, E31);
+}
+void drawFilledTriangle_test1(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
     Vec2 p1_f = viewportToCanvasCoordinate(p1_o);
     Vec2 p2_f = viewportToCanvasCoordinate(p2_o);
     Vec2 p3_f = viewportToCanvasCoordinate(p3_o);
@@ -445,6 +456,83 @@ void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
         }
     }
 }
+void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o){
+    Vec2 p1_f = viewportToCanvasCoordinate(p1_o);
+    Vec2 p2_f = viewportToCanvasCoordinate(p2_o);
+    Vec2 p3_f = viewportToCanvasCoordinate(p3_o);
+    // Vec2 p1_f(20, 20);
+    // Vec2 p2_f(100, 400);
+    // Vec2 p3_f(400, 20);
+    Vec2 p12_f = p2_f - p1_f;
+    Vec2 p13_f = p3_f - p1_f;
+    // if(scalarCrossVec(p12_f, p13_f) < 0) return;
+    if(scalarCrossVec(p12_f, p13_f) < 0){
+        swapVec(p2_f, p3_f); // to cw to calc
+    }
+    Vec2Int p1_q = fixedNumber_fixedXY(p1_f);
+    Vec2Int p2_q = fixedNumber_fixedXY(p2_f);
+    Vec2Int p3_q = fixedNumber_fixedXY(p3_f);
+    Vec2Int min, max;
+    min.x = (std::min(std::min(p1_q.x, p2_q.x), p3_q.x) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    min.y = (std::min(std::min(p1_q.y, p2_q.y), p3_q.y) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    max.x = (std::max(std::max(p1_q.x, p2_q.x), p3_q.x) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    max.y = (std::max(std::max(p1_q.y, p2_q.y), p3_q.y) + fixedNumber_CEIL) >> fixedNumber_RESOLUTION;
+    Vec2Int p12_q = p2_q - p1_q;
+    Vec2Int p23_q = p3_q - p2_q;
+    Vec2Int p31_q = p1_q - p3_q;
+    int C12_qq = p12_q.y*p1_q.x - p12_q.x*p1_q.y;
+    int C23_qq = p23_q.y*p2_q.x - p23_q.x*p2_q.y;
+    int C31_qq = p31_q.y*p3_q.x - p31_q.x*p3_q.y;
+    if(p12_q.y < 0 || (p12_q.y == 0 && p12_q.x > 0)) C12_qq++;
+    if(p23_q.y < 0 || (p23_q.y == 0 && p23_q.x > 0)) C23_qq++;
+    if(p31_q.y < 0 || (p31_q.y == 0 && p31_q.x > 0)) C31_qq++;
+    Vec2Int p12_qq = p12_q << fixedNumber_RESOLUTION;
+    Vec2Int p23_qq = p23_q << fixedNumber_RESOLUTION;
+    Vec2Int p31_qq = p31_q << fixedNumber_RESOLUTION;
+    int block_size = 4;
+    int block_size_minus_one = block_size - 1;
+    int block_size_bitmask = ~(block_size_minus_one);
+    min.x &= block_size_bitmask;
+    min.y &= block_size_bitmask;
+    Vec2Int n12_q(-p12_q.y, p12_q.x);
+    Vec2Int n23_q(-p23_q.y, p23_q.x);
+    Vec2Int n31_q(-p31_q.y, p31_q.x);
+    Vec2Int t12(n12_q.x >= 0 ? block_size_minus_one : 0, n12_q.y >= 0 ? block_size_minus_one : 0);
+    Vec2Int t23(n23_q.x >= 0 ? block_size_minus_one : 0, n23_q.y >= 0 ? block_size_minus_one : 0);
+    Vec2Int t31(n31_q.x >= 0 ? block_size_minus_one : 0, n31_q.y >= 0 ? block_size_minus_one : 0);
+    for(int y = min.y; y <= max.y; y += block_size){
+        for(int x = min.x; x <= max.x; x += block_size){
+            Vec2Int s12_q = (Vec2Int(x, y) + t12) << fixedNumber_RESOLUTION;
+            Vec2Int s23_q = (Vec2Int(x, y) + t23) << fixedNumber_RESOLUTION;
+            Vec2Int s31_q = (Vec2Int(x, y) + t31) << fixedNumber_RESOLUTION;
+            Vec3Int E_qq = edge_value(p12_q, p23_q, p31_q, C12_qq, C23_qq, C31_qq, s12_q, s23_q, s31_q);
+            Vec3Int E_qq_bool = E_qq.toBool();
+            if(!E_qq_bool.x || !E_qq_bool.y || !E_qq_bool.z){
+                continue;
+            }
+            else{
+                Vec2Int p_q = Vec2Int(x, y) << fixedNumber_RESOLUTION;
+                E_qq = edge_value(p12_q, p23_q, p31_q, C12_qq, C23_qq, C31_qq, p_q);
+                for(int yi = y, yi_max = y + block_size; yi < yi_max; yi++){
+                    int E12_qq = E_qq.x;
+                    int E23_qq = E_qq.y;
+                    int E31_qq = E_qq.z;
+                    for(int xi = x, xi_max = x + block_size; xi < xi_max; xi++){
+                        if(E12_qq > 0 && E23_qq > 0 && E31_qq > 0){
+                            putPixel(xi, yi);
+                        }
+                        E12_qq -= p12_qq.y;
+                        E23_qq -= p23_qq.y;
+                        E31_qq -= p31_qq.y;
+                    }
+                    E_qq.x += p12_qq.x;
+                    E_qq.y += p23_qq.x;
+                    E_qq.z += p31_qq.x;
+                }
+            }
+        }
+    }
+}
 
 void renderTriangle(
     const Triangle &triangle,
@@ -462,16 +550,16 @@ void renderTriangle(
     const Triangle &triangle,
     const std::vector<Vec3> &projecteds
 ){
-    // drawFilledTriangle(
-    //     projecteds[triangle.x],
-    //     projecteds[triangle.y],
-    //     projecteds[triangle.z]
-    // );
-    drawFilledTriangle_test(
+    drawFilledTriangle(
         projecteds[triangle.x],
         projecteds[triangle.y],
         projecteds[triangle.z]
     );
+    // drawFilledTriangle_test1(
+    //     projecteds[triangle.x],
+    //     projecteds[triangle.y],
+    //     projecteds[triangle.z]
+    // );
     // DrawTriangleCurrency::draw(
     //     projecteds[triangle.x],
     //     projecteds[triangle.y],
@@ -648,8 +736,8 @@ void clipTriangle(
     std::vector<Triangle> trianglesWaitingProcess = instance.model->triangles;
     std::vector<TextureCoor> textureCoorsWaitingProcess = instance.model->textureCoors;
     std::vector<int> trianglesWaitingProcess_plane(trianglesWaitingProcess.size(), 0);
-    clippingInfo.triangles->reserve(trianglesWaitingProcess.size());
-    clippingInfo.textureCoors->reserve(trianglesWaitingProcess.size());
+    clippingInfo.triangles.reserve(trianglesWaitingProcess.size());
+    clippingInfo.textureCoors.reserve(trianglesWaitingProcess.size());
     
     while(!trianglesWaitingProcess.empty()){
         Triangle triangle = trianglesWaitingProcess.back();
@@ -693,22 +781,14 @@ void clipTriangle(
             }
         }
         if(front == intersectPlanes.size() - startPlane){
-            clippingInfo.triangles->push_back(triangle);
-            clippingInfo.textureCoors->push_back(textureCoor);
+            clippingInfo.triangles.push_back(triangle);
+            clippingInfo.textureCoors.push_back(textureCoor);
         }
     }
 }
 
 ClippingInfo::ClippingInfo(){
     status = ClippingStatus::COMPLETE;
-    triangles = NULL;
-    textureCoors = NULL;
-};
-ClippingInfo::~ClippingInfo(){
-    if(status == ClippingStatus::PARTIAL){
-        delete triangles;
-        delete textureCoors;
-    }
 };
 
 ClippingInfo clipping(
@@ -726,15 +806,13 @@ ClippingInfo clipping(
     }
     if(status.fronts.size() == clippingPlaneLength){
         clippingInfo.status = ClippingStatus::NO;
-        clippingInfo.triangles = &instance.model->triangles;
-        clippingInfo.textureCoors = &instance.model->textureCoors;
+        clippingInfo.triangles = instance.model->triangles; // copy
+        clippingInfo.textureCoors = instance.model->textureCoors; // copy
 
         return clippingInfo;
     }
 
     clippingInfo.status = ClippingStatus::PARTIAL;
-    clippingInfo.triangles = new std::vector<Triangle>();
-    clippingInfo.textureCoors = new std::vector<TextureCoor>();
     clipTriangle(status.intersects, applieds, instance, clippingInfo);
 
     return clippingInfo;
@@ -815,6 +893,40 @@ Vec3 project(const Vec3 &worldPoint){
     return projected;
 }
 
+void backface_culling(ClippingInfo &clippingInfo, const std::vector<Vec3> &applieds){
+    std::vector<Triangle> triangles_result;
+    std::vector<TextureCoor> textureCoors_result;
+    for(int i = 0, n = clippingInfo.triangles.size(); i < n; i++){
+        Triangle trig = clippingInfo.triangles[i];
+        Vec3 v0 = applieds[trig.x];
+        Vec3 v1 = applieds[trig.y];
+        Vec3 v2 = applieds[trig.z];
+        Vec3 v01 = v1 - v0;
+        Vec3 v02 = v2 - v0;
+        Vec3 to_cam = normalizeVec(Vec3(0, 0, 0) - v0);
+        Vec3 normal = normalizeVec(crossVec(v01, v02));
+        float cos = dot(normal, to_cam);
+        // std::cout << vecToString(to_cam) << " ";
+        // std::cout << cos << " ";
+        if(cos >= 0){
+            triangles_result.push_back(trig);
+            textureCoors_result.push_back(clippingInfo.textureCoors[i]);
+        }
+    }
+    // std::cout << std::endl;
+    clippingInfo.triangles = triangles_result;
+    clippingInfo.textureCoors = textureCoors_result;
+}
+
+// void check_trig_not_cw(ClippingInfo &clippingInfo, const std::vector<Vec3> &applieds){
+//     for(int i = 0, n = clippingInfo.triangles.size(); i < n; i++){
+//         Triangle trig = clippingInfo.triangles[i];
+//         Vec3 v0 = applieds[trig.x];
+//         Vec3 v1 = applieds[trig.y];
+//         Vec3 v2 = applieds[trig.z];
+//     }
+// }
+
 void clear_screen(){
     std::fill_n(canvasBuffer, canvasBufferLength, 255);
     std::fill_n(deptBuffer, deptBufferLength, -std::numeric_limits<float>::max());
@@ -828,15 +940,18 @@ void render_instance(const Instance &instance, const BaseCamera &currentCamera, 
         return;
     }
 
+    // backface_culling(clippingInfo, applieds);
+    // std::cout << clippingInfo.triangles.size() << std::endl;
+
     project(applieds, clippingInfo);
     
-    DrawTriangleCurrency::renderTriangles(clippingInfo.triangles, applieds);
-    // for(int i = 0, n = clippingInfo.triangles->size(); i < n; i++){
-    //     Triangle triangle = clippingInfo.triangles->at(i);
-    //     // TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
-    //     // if(i == idx){
-    //         renderTriangle(triangle, applieds);
-    //         // renderTriangle(triangle, textureCoor, applieds);
-    //     // }
-    // }
+    // DrawTriangleCurrency::renderTriangles(clippingInfo.triangles, applieds);
+    for(int i = 0, n = clippingInfo.triangles.size(); i < n; i++){
+        Triangle triangle = clippingInfo.triangles.at(i);
+        // TextureCoor textureCoor = clippingInfo.textureCoors->at(i);
+        // if(i == idx){
+            renderTriangle(triangle, applieds);
+            // renderTriangle(triangle, textureCoor, applieds);
+        // }
+    }
 }

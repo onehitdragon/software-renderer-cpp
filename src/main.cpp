@@ -45,8 +45,32 @@ int main(){
 
     Model *model = new Model();
     Instance importIns = {model};
-    importIns.transform = {{0, 0, 1}, {0, 0, 0}, 1};
-    importFBX("assets/Test2/test2.fbx", model);
+    importIns.transform = {{0, 0, -3}, {0, 3, 0}, 1};
+    // importFBX("assets/Test2/test2.fbx", model);
+    importFBX("assets/Test2/monkey.fbx", model);
+    // importFBX("assets/Test2/icosphere.fbx", model);
+
+    // std::ofstream outfile("./ztest.out");
+    // for(int i = 0; i < model->vertices.size(); i++){
+    //     Vec3 vertex = model->vertices[i];
+    //     outfile << "Vector3 v" << i << " = new Vector3" << vecToString(vertex) << ";" << std::endl;
+    // }
+    // for(int i = 0; i < model->triangles.size(); i ++){
+    //     Triangle trig = model->triangles[i];
+    //     std::string s;
+    //     s.append("drawtrig(");
+    //     s.append("v");
+    //     s.append(std::to_string(trig.x));
+    //     s.append(",");
+    //     s.append("v");
+    //     s.append(std::to_string(trig.y));
+    //     s.append(",");
+    //     s.append("v");
+    //     s.append(std::to_string(trig.z));
+    //     s.append(")");
+    //     outfile << s << ";" << std::endl;
+    // }
+    
     // importFBX("assets/example1.fbx", model);
     // importFBX("assets/Stair/Stair.fbx", model);
     // importFBX("assets/House/House.fbx", model);
@@ -98,7 +122,7 @@ int main(){
     int fps = 0;
     std::string fpsText = "FPS: ";
     Uint64 startTime = SDL_GetTicks();
-    Instance inst = std::ref(teapotInstance);
+    Instance inst = std::ref(importIns);
     // Instance inst = std::ref(importIns);
     int idx = 0;
     bool pressed = false;
@@ -216,7 +240,6 @@ int main(){
         // main
         clear_screen();
         // DrawTriangleCurrency::draw2({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
-        // loop = false;
         // drawFilledTriangle_test({0, 0, 0}, {0, 0, 0}, {0, 0, 0});
         // DrawHelper::drawLine({1, 20, 1}, {50, 1, 1}, {0, 0, 0, 255});
         // DrawHelper::drawLine({1, 5, 0}, {5, 1, 0}, {0, 0, 0, 255});

@@ -13858,7 +13858,7 @@ Instance teapotInstance;
 void createTeapotInstance(){
     createTeapotModel();
     teapotInstance.model = teapotModel;
-    teapotInstance.transform = {{0, 0, 4.5}, {0, 0, 0}, 0.04};
+    teapotInstance.transform = {{0, 0, 0}, {0, 0, 0}, 0.04};
 }
 
 Model *cubeModel;

@@ -70,6 +70,18 @@
         "unordered_set": "cpp",
         "mutex": "cpp",
         "list": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "hash_map": "cpp",
+        "any": "cpp",
+        "complex": "cpp",
+        "csignal": "cpp",
+        "forward_list": "cpp",
+        "set": "cpp",
+        "future": "cpp",
+        "latch": "cpp",
+        "shared_mutex": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp",
+        "tensor": "cpp"
     }
 }

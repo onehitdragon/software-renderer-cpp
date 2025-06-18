@@ -71,8 +71,8 @@ bool oneVertexFront(
     }
     if(dB >= 0 && dA < 0 && dC < 0){
         frontVertex = vertexB;
-        rearVertex1 = vertexA;
-        rearVertex2 = vertexC;
+        rearVertex1 = vertexC;
+        rearVertex2 = vertexA;
         frontIndex = triangle.y;
         ignoredVertexIndexSet.insert(triangle.x);
         ignoredVertexIndexSet.insert(triangle.z);
@@ -157,11 +157,11 @@ bool twoVertexFront(
         isTwoVertexFront = true;
     }
     if(dA >= 0 && dC >= 0 && dB < 0){
-        frontVertex1 = vertexA;
-        frontVertex2 = vertexC;
+        frontVertex1 = vertexC;
+        frontVertex2 = vertexA;
         rearVertex = vertexB;
-        frontIndex1 = triangle.x;
-        frontIndex2 = triangle.z;
+        frontIndex1 = triangle.z;
+        frontIndex2 = triangle.x;
         ignoredVertexIndexSet.insert(triangle.y);
         frontTextureCoor1 = textureCoor.uv1;
         frontTextureCoor2 = textureCoor.uv3;
@@ -197,8 +197,8 @@ bool twoVertexFront(
     };
     Triangle newTriangle2 = {
         frontIndex2,
-        num_newVertex1,
-        num_newVertex2
+        num_newVertex2,
+        num_newVertex1
     };
     trianglesWaitingProcess.push_back(newTriangle1);
     trianglesWaitingProcess_plane.push_back(i + 1);

@@ -162,15 +162,20 @@ void swapVec(Vec2 &vec1, Vec2 &vec2){
     vec1 = vec2;
     vec2 = temp;
 }
+void swapVec(Vec2Int &vec1, Vec2Int &vec2){
+    Vec2Int temp = vec1;
+    vec1 = vec2;
+    vec2 = temp;
+}
 std::string vecToString(const float &x, const float &y, const float &z){
     std::string s;
     s.append("(");
     s.append(std::to_string(x));
-    s.append(", ");
+    s.append("f, ");
     s.append(std::to_string(y));
-    s.append(", ");
+    s.append("f, ");
     s.append(std::to_string(z));
-    s.append(")");
+    s.append("f)");
     
     return s;
 }

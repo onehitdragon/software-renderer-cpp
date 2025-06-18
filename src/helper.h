@@ -22,11 +22,10 @@ enum class ClippingStatus{
 class ClippingInfo{
 public:
     ClippingStatus status;
-    std::vector<Triangle> *triangles;
-    std::vector<TextureCoor> *textureCoors;
+    std::vector<Triangle> triangles;
+    std::vector<TextureCoor> textureCoors;
     std::unordered_set<int> ignoredVertexIndexSet;
     ClippingInfo();
-    ~ClippingInfo();
 };
 
 // class LineClippingInfo{

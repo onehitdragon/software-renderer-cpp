@@ -214,8 +214,9 @@ void copyVerticesToModel(
         std::visit(visitorY, data[i + 1]);
         std::visit(visitorZ, data[i + 2]);
         Vec3 vertex_yUp_zForward;
+        std::cout << vecToString(vertex) << std::endl;
         vertex_yUp_zForward.x = vertex.x;
-        vertex_yUp_zForward.y = vertex.z;
+        vertex_yUp_zForward.y = vertex.z; // for blender y -> z, z -> y
         vertex_yUp_zForward.z = vertex.y;
         model->vertices.push_back(vertex_yUp_zForward);
     }
@@ -239,7 +240,11 @@ void copyTrianglesToModel(
         std::visit(visitorX, data[i]);
         std::visit(visitorY, data[i + 1]);
         std::visit(visitorZ, data[i + 2]);
-        model->triangles.push_back(triangle);
+        Triangle triangle_cw;
+        triangle_cw.x = triangle.x;
+        triangle_cw.y = triangle.z; // for blender ccw -> cw
+        triangle_cw.z = triangle.y;
+        model->triangles.push_back(triangle_cw);
     }
 }
 void copyUVToModel(

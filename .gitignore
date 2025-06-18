@@ -2,3 +2,5 @@ build
 bin
 packages/*/
 assets/**/*.out
+ztest.out
+otherlib
