@@ -15,6 +15,7 @@ public:
     Vec2(float x, float y);
     Vec2 operator+(const Vec2 &other) const;
     Vec2 operator-(const Vec2 &other) const;
+    Vec2 operator*(const float &number) const;
 };
 
 class Vec3: public Vec2{

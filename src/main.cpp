@@ -2,6 +2,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "teapotmodel.h"
+#include "cubemodel.h"
 #include "common/fixednumber.h"
 #include "helper.h"
 #include "asset.h"
@@ -37,8 +38,8 @@ int main(){
     init_fixed_number(4);
     createTeapotInstance();
     createCubeInstance();
-    createTexture("assets/Test2/test.png");
-    // createTexture("assets/crate-texture.jpg");
+    // createTexture("assets/Test2/test.png");
+    createTexture("assets/crate-texture.jpg");
     // createTexture("assets/texture_img_1.png");
     // createTexture("assets/Stair/Stair_texture.png");
     // createTexture("assets/House/Texturelabs_Brick_163S.jpg");
@@ -46,17 +47,17 @@ int main(){
     Model *model = new Model();
     Instance importIns = {model};
     importIns.transform = {{0, 0, -3}, {0, 3, 0}, 1};
-    // importFBX("assets/Test2/test2.fbx", model);
-    importFBX("assets/Test2/monkey.fbx", model);
+    importFBX("assets/Test2/test2.fbx", model);
+    // importFBX("assets/Test2/monkey.fbx", model);
     // importFBX("assets/Test2/icosphere.fbx", model);
 
     // std::ofstream outfile("./ztest.out");
-    // for(int i = 0; i < model->vertices.size(); i++){
-    //     Vec3 vertex = model->vertices[i];
+    // for(int i = 0; i < cubeModel->vertices.size(); i++){
+    //     Vec3 vertex = cubeModel->vertices[i];
     //     outfile << "Vector3 v" << i << " = new Vector3" << vecToString(vertex) << ";" << std::endl;
     // }
-    // for(int i = 0; i < model->triangles.size(); i ++){
-    //     Triangle trig = model->triangles[i];
+    // for(int i = 0; i < cubeModel->triangles.size(); i ++){
+    //     Triangle trig = cubeModel->triangles[i];
     //     std::string s;
     //     s.append("drawtrig(");
     //     s.append("v");
@@ -122,7 +123,7 @@ int main(){
     int fps = 0;
     std::string fpsText = "FPS: ";
     Uint64 startTime = SDL_GetTicks();
-    Instance inst = std::ref(importIns);
+    Instance inst = std::ref(cubeInstance);
     // Instance inst = std::ref(importIns);
     int idx = 0;
     bool pressed = false;
@@ -245,6 +246,7 @@ int main(){
         // DrawHelper::drawLine({1, 5, 0}, {5, 1, 0}, {0, 0, 0, 255});
         // DrawHelper::drawLine({0, 0, 8}, {15, 3, 8}, {255, 0, 0, 255});
         render_instance(inst, trackballCamera, idx);
+        // loop = false;
         SDL_UpdateTexture(texture, NULL, canvasBuffer, WINDOW_WIDTH * 4);
         SDL_RenderTexture(renderer, texture, NULL, NULL);
 

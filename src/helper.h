@@ -41,6 +41,6 @@ Vec3 project(const Vec3 &worldPoint);
 void clear_screen();
 void render_instance(const Instance &instance, const BaseCamera &currentCamera, int idx);
 
-void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o);
+void drawFilledTriangle_test(Vec3 p1_o, Vec3 p2_o, Vec3 p3_o, const TextureCoor &trig_st);
 
 #endif

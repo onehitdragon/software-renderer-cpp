@@ -14,6 +14,12 @@ Vec2 Vec2::operator-(const Vec2 &other) const{
         y - other.y
     };
 }
+Vec2 Vec2::operator*(const float &number) const{
+    return {
+        x * number,
+        y * number
+    };
+}
 
 Vec3::Vec3(): z(0){}
 Vec3::Vec3(float x, float y, float z): Vec2(x, y), z(z){}
